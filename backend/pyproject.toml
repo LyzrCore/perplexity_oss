@@ -1,0 +1,23 @@
+[project]
+name = "perplexity-oss"
+version = "0.1.0"
+description = "AI-powered search engine powered by Lyzr AI"
+authors = [
+    {name = "Perplexity OSS", email = "hello@lyzr.ai"}
+]
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi==0.104.1",
+    "uvicorn[standard]==0.24.0",
+    "pydantic==2.5.2",
+    "python-dotenv==1.0.0",
+    "httpx==0.25.2",
+    "sse-starlette==1.8.2",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+dev-dependencies = []
