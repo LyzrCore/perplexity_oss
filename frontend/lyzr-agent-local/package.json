@@ -1,0 +1,42 @@
+{
+  "name": "lyzr-agent",
+  "version": "1.0.0",
+  "description": "A lightweight authentication package using Memberstack for Google login with a floating badge",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "test": "jest",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "memberstack",
+    "google-login",
+    "authentication",
+    "lyzr"
+  ],
+  "author": "Lyzr",
+  "license": "MIT",
+  "dependencies": {
+    "@memberstack/dom": "1.9.40"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.22.0",
+    "@babel/preset-env": "^7.22.0",
+    "@rollup/plugin-babel": "^6.0.0",
+    "@rollup/plugin-commonjs": "^25.0.0",
+    "@rollup/plugin-node-resolve": "^15.0.0",
+    "@rollup/plugin-typescript": "^11.0.0",
+    "rollup": "^2.79.1",
+    "typescript": "^4.9.5",
+    "tslib": "^2.6.0"
+  },
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0"
+  }
+}

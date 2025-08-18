@@ -8,7 +8,7 @@ WORKDIR /app
 COPY package.json ./
 COPY lyzr-agent-local ./lyzr-agent-local
 # Build the local lyzr-agent package first
-RUN cd lyzr-agent-local && npm install && npm run build
+RUN cd lyzr-agent-local && npm install --ignore-scripts && npm run build
 # Install main project dependencies
 RUN npm install
 

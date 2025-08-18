@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LyzrAgent Vanilla JS Example</title>
+    <style>
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            border-radius: 4px;
+            background: #4285f4;
+            color: white;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>LyzrAgent Example</h1>
+        <p>This example demonstrates the LyzrAgent integration with vanilla JavaScript</p>
+        <button onclick="moveBadge()">Move Badge to Top Right</button>
+    </div>
+
+    <script src="../../dist/index.js"></script>
+    <script>
+        // Initialize LyzrAgent with your Memberstack public key
+        lyzr.init('pk_c14a2728e715d9ea67bf');
+       
+        function moveBadge() {
+            // Move the badge to top right corner
+            lyzr.setBadgePosition('20px', 'auto');
+        }
+    </script>
+</body>
+</html>
