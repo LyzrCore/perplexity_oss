@@ -5,6 +5,7 @@ from typing import AsyncIterator, List, Optional
 
 from fastapi import HTTPException
 
+from auth import AuthenticatedUser
 from llm.lyzr_agent import LyzrSpecializedAgents
 from prompts import CHAT_PROMPT, HISTORY_QUERY_REPHRASE
 from related_queries import generate_related_queries
@@ -56,12 +57,15 @@ def format_context(search_results: List[SearchResult]) -> str:
 
 
 async def stream_qa_objects(
-    request: ChatRequest, session: Optional[any] = None
+    request: ChatRequest, session: Optional[any] = None, user: Optional[AuthenticatedUser] = None
 ) -> AsyncIterator[ChatResponseEvent]:
     """Stream chat responses using Lyzr agents for search and answer generation."""
     try:
-        # Initialize specialized agents
-        specialized_agents = LyzrSpecializedAgents()
+        # Initialize specialized agents with user credentials
+        specialized_agents = LyzrSpecializedAgents(
+            api_key=user.api_key if user else None,
+            api_base=None  # Use default
+        )
 
         yield ChatResponseEvent(
             event=StreamEvent.BEGIN_STREAM,

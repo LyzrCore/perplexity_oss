@@ -2,16 +2,21 @@ FROM node:18-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat git
 WORKDIR /app
 
 COPY package.json ./
+COPY lyzr-agent-local ./lyzr-agent-local
+# Build the local lyzr-agent package first
+RUN cd lyzr-agent-local && npm install && npm run build
+# Install main project dependencies
 RUN npm install
 
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/lyzr-agent-local ./lyzr-agent-local
 COPY . .
 
 # Build arguments for environment variables

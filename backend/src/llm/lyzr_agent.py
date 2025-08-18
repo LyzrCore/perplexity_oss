@@ -437,9 +437,9 @@ class LyzrAgentProvider:
 class LyzrSpecializedAgents:
     """Manager for specialized Lyzr agents for different tasks"""
 
-    def __init__(self):
-        self.api_key = os.getenv("LYZR_API_KEY")
-        self.api_base = os.getenv("LYZR_API_BASE", "https://agent.api.lyzr.app")
+    def __init__(self, api_key: str = None, api_base: str = None):
+        self.api_key = api_key or os.getenv("LYZR_API_KEY")
+        self.api_base = api_base or os.getenv("LYZR_API_BASE", "https://agent.api.lyzr.app")
 
         # Load agent IDs from environment
         self.query_rephrase_agent_id = os.getenv("LYZR_QUERY_REPHRASE_AGENT_ID")

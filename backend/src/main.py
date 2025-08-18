@@ -12,12 +12,13 @@ import traceback
 from typing import Generator
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from sse_starlette.sse import EventSourceResponse, ServerSentEvent
 
 from agent_search import stream_pro_search_qa
+from auth import get_authenticated_user, AuthenticatedUser
 from chat import stream_qa_objects
 from schemas import (
     ChatRequest,
@@ -71,12 +72,17 @@ async def health_check():
 
 
 @app.post("/chat")
-async def chat(chat_request: ChatRequest, request: Request) -> EventSourceResponse:
+async def chat(
+    chat_request: ChatRequest, 
+    request: Request,
+    user: AuthenticatedUser = Depends(get_authenticated_user)
+) -> EventSourceResponse:
     """
     Main chat endpoint that processes user queries using Lyzr agents.
     
     Supports both simple chat and advanced pro search modes.
     Returns a stream of responses including search results and AI-generated answers.
+    Requires authentication.
     """
     async def generator():
         try:
@@ -85,7 +91,7 @@ async def chat(chat_request: ChatRequest, request: Request) -> EventSourceRespon
                 stream_pro_search_qa if chat_request.pro_search else stream_qa_objects
             )
             
-            async for obj in stream_fn(request=chat_request, session=None):
+            async for obj in stream_fn(request=chat_request, session=None, user=user):
                 if await request.is_disconnected():
                     break
                 yield json.dumps(jsonable_encoder(obj))

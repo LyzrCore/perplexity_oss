@@ -4,8 +4,9 @@ import Link from "next/link";
 import { ModeToggle } from "./mode-toggle";
 import { useTheme } from "next-themes";
 import { Button } from "./ui/button";
-import { HistoryIcon, PlusIcon } from "lucide-react";
+import { HistoryIcon, PlusIcon, LogOutIcon, UserIcon } from "lucide-react";
 import { useChatStore } from "@/stores";
+import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 
 const NewChatButton = () => {
@@ -14,6 +15,40 @@ const NewChatButton = () => {
       <PlusIcon className="w-4 h-4" />
       <span className="block">&nbsp;&nbsp;New</span>
     </Button>
+  );
+};
+
+const AuthSection = () => {
+  const { isAuthenticated, isLoading, user, logout } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2">
+        <div className="animate-pulse bg-muted rounded w-8 h-8"></div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="flex items-center gap-2">
+        <Button variant="outline" size="sm">
+          <UserIcon className="w-4 h-4 mr-2" />
+          Login
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-sm text-muted-foreground">
+        {user?.email}
+      </span>
+      <Button variant="ghost" size="sm" onClick={logout}>
+        <LogOutIcon className="w-4 h-4" />
+      </Button>
+    </div>
   );
 };
 
@@ -49,6 +84,7 @@ export function Navbar() {
         {!onHomePage && <NewChatButton />}
       </div>
       <div className="flex items-center gap-4">
+        <AuthSection />
         <ModeToggle />
       </div>
     </header>

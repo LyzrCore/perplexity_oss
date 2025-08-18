@@ -27,6 +27,8 @@ import {
 } from "@microsoft/fetch-event-source";
 import { useState } from "react";
 import { useConfigStore, useChatStore } from "@/stores";
+import { useAuth } from "@/contexts/AuthContext";
+import { USER_KEY } from "@/lib/constants";
 import { env } from "../env.mjs";
 import { useRouter } from "next/navigation";
 
@@ -35,15 +37,29 @@ const BASE_URL = env.NEXT_PUBLIC_API_URL;
 const streamChat = async ({
   request,
   onMessage,
+  apiKey,
+  userId,
 }: {
   request: ChatRequest;
   onMessage?: FetchEventSourceInit["onmessage"];
+  apiKey?: string;
+  userId?: string;
 }): Promise<void> => {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  if (apiKey) {
+    headers["x-api-key"] = apiKey;
+  }
+  
+  if (userId) {
+    headers["x-user-id"] = userId;
+  }
+
   return await fetchEventSource(`${BASE_URL}/chat`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers,
     keepalive: true,
     openWhenHidden: true,
     body: JSON.stringify({ ...request }),
@@ -66,6 +82,7 @@ const convertToChatRequest = (query: string, history: ChatMessage[]) => {
 export const useChat = () => {
   const { addMessage, messages, threadId, setThreadId } = useChatStore();
   const { proMode } = useConfigStore();
+  const { user, userId } = useAuth();
 
   const [streamingMessage, setStreamingMessage] = useState<ChatMessage | null>(
     null,
@@ -214,8 +231,13 @@ export const useChat = () => {
         thread_id: threadId,
         pro_search: proMode,
       };
+      // Get API key from localStorage
+      const apiKey = localStorage.getItem(USER_KEY);
+      
       await streamChat({
         request: req,
+        apiKey: apiKey || undefined,
+        userId: userId || undefined,
         onMessage: (event) => {
           // Handles keep-alive events
           if (!event.data) return;

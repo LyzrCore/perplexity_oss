@@ -6,6 +6,7 @@ from typing import AsyncIterator, List, Optional
 from fastapi import HTTPException
 from pydantic import BaseModel, Field
 
+from auth import AuthenticatedUser
 from chat import rephrase_query_with_history
 from llm.lyzr_agent import LyzrSpecializedAgents
 from prompts import CHAT_PROMPT, QUERY_PLAN_PROMPT, SEARCH_QUERY_PROMPT
@@ -303,7 +304,7 @@ async def stream_pro_search_objects(
 
 
 async def stream_pro_search_qa(
-    request: ChatRequest, session=None
+    request: ChatRequest, session=None, user: Optional[AuthenticatedUser] = None
 ) -> AsyncIterator[ChatResponseEvent]:
     try:
         if not PRO_MODE_ENABLED:
@@ -312,8 +313,11 @@ async def stream_pro_search_qa(
                 detail="Pro mode is not enabled, self-host to enable it at https://github.com/LyzrCore/perplexity_oss",
             )
 
-        # Initialize specialized agents instead of general LLM
-        specialized_agents = LyzrSpecializedAgents()
+        # Initialize specialized agents with user credentials
+        specialized_agents = LyzrSpecializedAgents(
+            api_key=user.api_key if user else None,
+            api_base=None  # Use default
+        )
 
         query = rephrase_query_with_history(
             request.query, request.history, specialized_agents
