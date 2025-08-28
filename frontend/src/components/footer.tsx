@@ -5,8 +5,8 @@ import { Globe } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="w-full flex fixed bottom-0 right-0 p-1 z-50 bg-background/95">
-      <div className="px-1 w-full flex flex-row justify-end space-x-1">
+    <footer className="w-full flex fixed bottom-0 right-0 p-1 z-50 bg-gradient-to-t from-background/95 to-transparent">
+      <div className="px-1 w-full flex flex-row justify-start space-x-1">
         <Button variant="ghost" size="icon" className="hover:bg-transparent">
           <Link href="https://lyzr.ai" target="_blank">
             <Globe size={16} />

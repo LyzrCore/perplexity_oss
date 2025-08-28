@@ -140,6 +140,54 @@
 }
 
 .dark {
+  --background: oklch(0.1408 0.0044 285.8229);
+  --foreground: oklch(0.9842 0.0034 247.8575);
+  --card: oklch(0.2103 0.0059 285.8852);
+  --card-foreground: oklch(0.9842 0.0034 247.8575);
+  --popover: oklch(0.2103 0.0059 285.8852);
+  --popover-foreground: oklch(0.9842 0.0034 247.8575);
+  --primary: oklch(0.5976 0.2311 286.3572);
+  --primary-foreground: oklch(1.0000 0 0);
+  --secondary: oklch(0.2739 0.0055 286.0326);
+  --secondary-foreground: oklch(0.9842 0.0034 247.8575);
+  --muted: oklch(0.2739 0.0055 286.0326);
+  --muted-foreground: oklch(0.7118 0.0129 286.0665);
+  --accent: oklch(0.2739 0.0055 286.0326);
+  --accent-foreground: oklch(0.9842 0.0034 247.8575);
+  --destructive: oklch(0.3958 0.1331 25.7230);
+  --destructive-foreground: oklch(1.0000 0 0);
+  --border: oklch(0.2739 0.0055 286.0326);
+  --input: oklch(0.2739 0.0055 286.0326);
+  --ring: oklch(0.5325 0.2397 288.1280);
+  --chart-1: oklch(0.5976 0.2311 286.3572);
+  --chart-2: oklch(0.6541 0.1593 325.1735);
+  --chart-3: oklch(0.5820 0.1263 336.9481);
+  --chart-4: oklch(0.8369 0.1644 84.4286);
+  --chart-5: oklch(0.5054 0.1905 27.5181);
+  --sidebar: oklch(0.1408 0.0044 285.8229);
+  --sidebar-foreground: oklch(0.9842 0.0034 247.8575);
+  --sidebar-primary: oklch(0.5976 0.2311 286.3572);
+  --sidebar-primary-foreground: oklch(1.0000 0 0);
+  --sidebar-accent: oklch(0.2103 0.0059 285.8852);
+  --sidebar-accent-foreground: oklch(0.9842 0.0034 247.8575);
+  --sidebar-border: oklch(0.2739 0.0055 286.0326);
+  --sidebar-ring: oklch(0.5325 0.2397 288.1280);
+  --font-sans: "Switzer", ui-sans-serif, sans-serif, system-ui;
+  --font-serif: "Switzer", ui-serif, serif, system-ui;
+  --font-mono: monospace;
+  --radius: 1.0rem;
+  --shadow-2xs: 0px 4px 24px 0px hsl(0 0% 0% / 0.10);
+  --shadow-xs: 0px 4px 24px 0px hsl(0 0% 0% / 0.10);
+  --shadow-sm: 0px 4px 24px 0px hsl(0 0% 0% / 0.20), 0px 1px 2px -1px hsl(0 0% 0% / 0.20);
+  --shadow: 0px 4px 24px 0px hsl(0 0% 0% / 0.20), 0px 1px 2px -1px hsl(0 0% 0% / 0.20);
+  --shadow-md: 0px 4px 24px 0px hsl(0 0% 0% / 0.20), 0px 2px 4px -1px hsl(0 0% 0% / 0.20);
+  --shadow-lg: 0px 4px 24px 0px hsl(0 0% 0% / 0.20), 0px 4px 6px -1px hsl(0 0% 0% / 0.20);
+  --shadow-xl: 0px 4px 24px 0px hsl(0 0% 0% / 0.20), 0px 8px 10px -1px hsl(0 0% 0% / 0.20);
+  --shadow-2xl: 0px 4px 24px 0px hsl(0 0% 0% / 0.50);
+}
+
+
+/* .dark {
   --background: oklch(0.1748 0.0713 266.7409);
   --foreground: oklch(0.9842 0.0034 247.8575);
   --card: oklch(0.2077 0.0398 265.7549);
@@ -184,7 +232,7 @@
   --shadow-lg: 0px 4px 2px 0px hsl(0 0% 0% / 0.10), 0px 4px 6px -1px hsl(0 0% 0% / 0.10);
   --shadow-xl: 0px 4px 2px 0px hsl(0 0% 0% / 0.10), 0px 8px 10px -1px hsl(0 0% 0% / 0.10);
   --shadow-2xl: 0px 4px 2px 0px hsl(0 0% 0% / 0.25);
-}
+} */
 
 @theme inline {
   --color-background: var(--background);
@@ -250,6 +298,62 @@ body {
   letter-spacing: var(--tracking-normal);
 }
 
+/* Custom animations */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes bounce-gentle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.5s ease-out;
+}
+
+.animate-bounce-gentle {
+  animation: bounce-gentle 2s ease-in-out infinite;
+}
 
 @layer base {
   * {
@@ -262,4 +366,45 @@ body {
 
 ::selection {
   @apply bg-primary text-primary-foreground;
+}
+
+body {
+	background: linear-gradient(-45deg, #603BFC40, #A94FA140, #FF683540, #D3B3E440);
+	animation: gradient 16s ease infinite;
+  background-size: 200% 200%;
+	height: 100vh;
+}
+
+.white-gradient {
+	background: linear-gradient(to bottom, var(--background) 20%, transparent), url('https://grainy-gradients.vercel.app/noise.svg');
+  /* background: radial-gradient(circle, transparent, var(--background) 33%); */
+}
+
+/* .white-gradient.dark {
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 1) 20%, transparent), url('https://grainy-gradients.vercel.app/noise.svg');
+} */
+
+
+/* @media (prefers-color-scheme: dark) {
+  .white-gradient {
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 1) 20%, transparent), url('https://grainy-gradients.vercel.app/noise.svg');
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  .white-gradient {
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 1) 20%, transparent), url('https://grainy-gradients.vercel.app/noise.svg');
+  }
+} */
+
+@keyframes gradient {
+	0% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+	100% {
+		background-position: 0% 50%;
+	}
 }

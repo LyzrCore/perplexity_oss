@@ -11,9 +11,14 @@ import { useRouter } from "next/navigation";
 
 const NewChatButton = () => {
   return (
-    <Button variant="secondary" size="sm" onClick={() => (location.href = "/")}>
-      <PlusIcon className="w-4 h-4" />
-      <span className="block">&nbsp;&nbsp;New</span>
+    <Button 
+      variant="outline" 
+      size="sm" 
+      onClick={() => (location.href = "/")}
+      className="gap-2"
+    >
+      <PlusIcon className="h-4 w-4" />
+      <span className="hidden sm:inline">New Chat</span>
     </Button>
   );
 };
@@ -24,29 +29,28 @@ const AuthSection = () => {
   if (isLoading) {
     return (
       <div className="flex items-center gap-2">
-        <div className="animate-pulse bg-muted rounded w-8 h-8"></div>
+        <div className="animate-pulse bg-muted rounded-full w-8 h-8"></div>
       </div>
     );
   }
 
   if (!isAuthenticated) {
     return (
-      <div className="flex items-center gap-2">
-        <Button variant="outline" size="sm">
-          <UserIcon className="w-4 h-4 mr-2" />
-          Login
-        </Button>
-      </div>
+      <Button variant="outline" size="sm" className="gap-2">
+        <UserIcon className="h-4 w-4" />
+        <span className="hidden sm:inline">Login</span>
+      </Button>
     );
   }
 
   return (
     <div className="flex items-center gap-2">
-      <span className="text-sm text-muted-foreground">
+      <span className="text-sm text-muted-foreground font-medium hidden md:inline">
         {user?.email}
       </span>
-      <Button variant="ghost" size="sm" onClick={logout}>
-        <LogOutIcon className="w-4 h-4" />
+      <Button variant="ghost" size="sm" onClick={logout} className="gap-2">
+        <LogOutIcon className="h-4 w-4" />
+        <span className="hidden sm:inline">Logout</span>
       </Button>
     </div>
   );
@@ -60,32 +64,32 @@ export function Navbar() {
   const onHomePage = messages.length === 0;
 
   return (
-    <header className="w-full flex fixed p-1 z-50 px-2 bg-background/95 justify-between items-center">
-      <div className="flex items-center gap-2">
-        <Link href="/" passHref onClick={() => (location.href = "/")}>
-          <div className="flex items-center gap-3">
-            <div
-              className="w-10 h-10 rounded-lg bg-linear-to-br 
-     from-purple-500 to-purple-600 flex items-center justify-center text-white font-bold
-     text-lg"
-            >
-              P
+    <header className="fixed top-0 left-0 right-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 animate-slide-in-right">
+      <div className="flex h-16 items-center justify-between px-4 md:px-6 lg:px-8">
+        <div className="flex items-center gap-4">
+          <Link href="/" onClick={() => (location.href = "/")} className="flex items-center gap-3 hover:opacity-80 transition-all duration-200 hover:scale-105">
+            <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm md:text-lg shadow-lg">
+              <img src="/lyzr.png" alt="Perplexity OSS" />
             </div>
-            <div className="flex flex-col">
-              <span className="text-xl font-bold text-purple-600">
+            <div className="hidden sm:flex flex-col">
+              <span className="text-lg md:text-xl font-bold text-foreground">
                 Perplexity OSS
               </span>
               <span className="text-xs text-muted-foreground">
                 powered by Lyzr AI
               </span>
             </div>
-          </div>
-        </Link>
-        {!onHomePage && <NewChatButton />}
-      </div>
-      <div className="flex items-center gap-4">
-        <AuthSection />
-        <ModeToggle />
+          </Link>
+          {!onHomePage && (
+            <div className="animate-fade-in" style={{ animationDelay: '300ms', animationFillMode: 'backwards' }}>
+              <NewChatButton />
+            </div>
+          )}
+        </div>
+        <div className="flex items-center gap-2 md:gap-4 animate-fade-in" style={{ animationDelay: '200ms', animationFillMode: 'backwards' }}>
+          <AuthSection />
+          <ModeToggle />
+        </div>
       </div>
     </header>
   );

@@ -39,11 +39,11 @@ const FollowingUpInput = ({
   setInput: (input: string) => void;
 }) => {
   return (
-    <div className="w-full flex flex-row rounded-full focus:outline-none px-2 py-1 bg-card border-2 items-center">
+    <div className="w-full flex flex-row rounded-full border bg-card px-4 py-2 shadow-md transition-shadow hover:shadow-lg items-center gap-3">
       <div className="w-full">
         <InputTextarea input={input} setInput={setInput} />
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-shrink-0">
         <ProToggle />
         <SendButton disabled={input.trim().length < 5} />
       </div>

@@ -2,7 +2,6 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import Providers from "@/providers";
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { GeistSans } from "geist/font/sans";
 import { JetBrains_Mono as Mono } from "next/font/google";
@@ -50,23 +49,33 @@ export default function RootLayout({
             rel="stylesheet"
           />
         </head>
-        {/* className={cn("antialiased", GeistSans.className, mono.className)} */}
         <body
+          className={cn(
+            "min-h-screen bg-background font-sans antialiased",
+            // GeistSans.className,
+            mono.variable
+          )}
         >
-          <Providers>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="dark"
-              enableSystem
-              disableTransitionOnChange
-            >
-              <Navbar />
-              {children}
-              <Toaster />
-              <Footer />
-              <Analytics />
-            </ThemeProvider>
-          </Providers>
+          <div className="white-gradient w-full h-full transition-all duration-300">
+            <Providers>
+              <ThemeProvider
+                attribute="class"
+                defaultTheme="dark"
+                enableSystem
+                disableTransitionOnChange
+              >
+                <div className="relative flex min-h-screen flex-col">
+                  <Navbar />
+                  <main className="flex-1 pt-16 pb-16 flex flex-col justify-center">
+                    {children}
+                  </main>
+                  <Footer />
+                </div>
+                <Toaster />
+                <Analytics />
+              </ThemeProvider>
+            </Providers>
+          </div>
         </body>
       </html>
     </>
