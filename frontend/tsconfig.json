@@ -22,5 +22,5 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "lyzr-agent-local/examples"]
+  "exclude": ["node_modules", "lyzr-agent-local/examples", "src/components"]
 }
