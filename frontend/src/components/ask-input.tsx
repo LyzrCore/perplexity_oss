@@ -15,7 +15,7 @@ const InputBar = ({
 }) => {
   return (
     <div className="w-full flex flex-col rounded-md focus:outline-none px-2 py-1 bg-card border-2">
-      <div className="w-full">
+      <div className="w-full max-h-[200px] overflow-y-auto">
         <InputTextarea input={input} setInput={setInput} />
       </div>
       <div className="flex justify-end">
