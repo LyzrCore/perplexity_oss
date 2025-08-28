@@ -69,7 +69,7 @@ export function Navbar() {
         <div className="flex items-center gap-4">
           <Link href="/" onClick={() => (location.href = "/")} className="flex items-center gap-3 hover:opacity-80 transition-all duration-200 ">
             <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm md:text-lg shadow-lg">
-              <img src="/lyzr.png" alt="Perplexity OSS" />
+              <img src="/static/lyzr.png" alt="Perplexity OSS" />
             </div>
             <div className="hidden sm:flex flex-col">
               <span className="text-lg md:text-xl font-bold text-foreground">

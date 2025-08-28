@@ -386,7 +386,7 @@ body.no-gradient-background {
 }
 
 .white-gradient {
-	background: linear-gradient(to bottom, var(--background) 20%, transparent), url('https://grainy-gradients.vercel.app/noise.svg');
+	background: linear-gradient(to bottom, var(--background) 20%, transparent), url('./noise.svg');
   /* background: radial-gradient(circle, transparent, var(--background) 33%); */
 }
 
