@@ -43,7 +43,7 @@ export default function Home() {
   if (isLoading || (isAuthenticated && !hasCredentials)) {
     return (
       <div className="h-screen">
-        <div className="flex grow h-full mx-auto max-w-screen-md px-4 md:px-8">
+        <div className="flex grow h-full mx-auto max-w-(--breakpoint-md) px-4 md:px-8">
           <div className="flex items-center justify-center w-full">
             <div className="animate-pulse text-center">
               <div className="w-12 h-12 bg-muted rounded-full mx-auto mb-4"></div>
@@ -60,7 +60,7 @@ export default function Home() {
   if (!isAuthenticated) {
     return (
       <div className="h-screen">
-        <div className="flex grow h-full mx-auto max-w-screen-md px-4 md:px-8">
+        <div className="flex grow h-full mx-auto max-w-(--breakpoint-md) px-4 md:px-8">
           <LoginPrompt />
         </div>
       </div>
@@ -69,7 +69,7 @@ export default function Home() {
 
   return (
     <div className="h-screen">
-      <div className="flex grow h-full mx-auto max-w-screen-md px-4 md:px-8">
+      <div className="flex grow h-full mx-auto max-w-(--breakpoint-md) px-4 md:px-8">
         <Suspense>
           <ChatPanel />
         </Suspense>

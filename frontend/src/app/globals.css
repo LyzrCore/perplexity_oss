@@ -1,8 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-@import "tailwindcss";
-@import "tw-animate-css";
+/* @import 'tailwindcss';
 
 @layer base {
   :root {
@@ -72,16 +68,19 @@
     --input: 0 0% 14.9%;
     --ring: 0 0% 14.9%;
   }
-}
+} */
 
-@layer base {
+/* @layer base {
   * {
     @apply border-border;
   }
   body {
     @apply bg-background text-foreground;
   }
-}
+} */
+
+@import "tailwindcss";
+@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
