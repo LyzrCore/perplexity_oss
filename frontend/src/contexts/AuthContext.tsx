@@ -1,3 +1,5 @@
+"use client";
+
 import {
   createContext,
   useContext,
@@ -7,6 +9,8 @@ import {
   useRef,
 } from "react";
 import { USER_KEY, USER_TOKEN } from "@/lib/constants";
+
+// import lyzr from "../../lyzr-agent-local";
 
 // The token data returned by the SDK.getKeys() call.
 interface TokenData {
@@ -78,7 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       setIsInitializing(true);
-      const { default: lyzr } = await import("lyzr-agent");
+      const { default: lyzr } = await import("../../lyzr-agent-local");
 
       // 1. Get basic token data: API key + user_id
       const tokenData = (await lyzr.getKeys()) as unknown as TokenData[];
@@ -141,16 +145,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Add a logout function that calls lyzr.logout + clears local data
   const logout = async () => {
     try {
-      const { default: lyzr } = await import("lyzr-agent");
+      const { default: lyzr } = await import("../../lyzr-agent-local");
       await lyzr.logout(); // log out from the SDK
       handleAuthFailure();
     } catch (err) {
       console.error("Failed to log out from lyzr:", err);
     }
-    
+
     // Clear local data
     handleAuthFailure();
-    
+
     // Remove any query parameters from URL after logout
     const currentUrl = new URL(window.location.href);
     const cleanUrl = `${currentUrl.origin}${currentUrl.pathname}`;
@@ -202,7 +206,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (isInitializedRef.current) return; // Use persistent ref
 
       try {
-        const { default: lyzr } = await import("lyzr-agent");
+        const { default: lyzr } = await import("../../lyzr-agent-local");
 
         await lyzr.init("pk_c14a2728e715d9ea67bf");
         isInitializedRef.current = true; // Mark as initialized
@@ -249,4 +253,3 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     </AuthContext.Provider>
   );
 }
-

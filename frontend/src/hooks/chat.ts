@@ -52,7 +52,7 @@ const streamChat = async ({
   if (apiKey) {
     headers["x-api-key"] = apiKey;
   }
-  
+
   if (userId) {
     headers["x-user-id"] = userId;
   }
@@ -85,7 +85,7 @@ export const useChat = () => {
   const { user, userId } = useAuth();
 
   const [streamingMessage, setStreamingMessage] = useState<ChatMessage | null>(
-    null,
+    null
   );
   const [isStreamingProSearch, setIsStreamingProSearch] = useState(false);
   const [isStreamingMessage, setIsStreamingMessage] = useState(false);
@@ -232,8 +232,11 @@ export const useChat = () => {
         pro_search: proMode,
       };
       // Get API key from localStorage
-      const apiKey = localStorage.getItem(USER_KEY);
-      
+      const apiKey =
+        typeof window === "undefined"
+          ? undefined
+          : localStorage.getItem(USER_KEY);
+
       await streamChat({
         request: req,
         apiKey: apiKey || undefined,

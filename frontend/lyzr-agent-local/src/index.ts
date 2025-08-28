@@ -1,3 +1,5 @@
+"use client";
+
 import memberstackDom from "@memberstack/dom";
 
 class LyzrAgent {
@@ -41,7 +43,7 @@ class LyzrAgent {
       pagosUrl?: string;
       agentStudioUrl?: string;
       agentStudioUrlSignup?: string;
-    },
+    }
   ): Promise<LyzrAgent> {
     try {
       // Update public key if provided; else ensure one exists
@@ -148,7 +150,7 @@ class LyzrAgent {
     // Return unsubscribe function
     return () => {
       this.authStateCallbacks = this.authStateCallbacks.filter(
-        (cb) => cb !== callback,
+        (cb) => cb !== callback
       );
     };
   }
@@ -198,7 +200,7 @@ class LyzrAgent {
             "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
             authorization: `Bearer ${this.token}`,
           },
-        },
+        }
       );
 
       if (!response.ok) {
@@ -372,14 +374,14 @@ class LyzrAgent {
 
     if (studioButton) {
       studioButton.addEventListener("click", () =>
-        this.handleAgentStudioLogin(),
+        this.handleAgentStudioLogin()
       );
     } else {
       console.error("Failed to find  login button");
     }
     if (signupButton) {
       signupButton.addEventListener("click", () =>
-        this.handleAgentStudioSignup(),
+        this.handleAgentStudioSignup()
       );
     } else {
       console.error("Failed to find signup button");
@@ -480,7 +482,7 @@ class LyzrAgent {
           this.modal.style.display = "block";
           console.log(
             "Modal display style after update:",
-            this.modal.style.display,
+            this.modal.style.display
           );
           // Force a reflow
           this.modal.offsetHeight;
@@ -616,7 +618,7 @@ class LyzrAgent {
     // Add event listeners
     const closeButton = document.getElementById("lyzr-credit-error-close");
     const redirectButton = document.getElementById(
-      "lyzr-credit-error-redirect",
+      "lyzr-credit-error-redirect"
     );
     const logoutButton = document.getElementById("lyzr-logout-button");
     if (closeButton) {
@@ -725,21 +727,21 @@ class LyzrAgent {
     // Add event listeners
     const closeButton = document.getElementById("lyzr-credit-warning-close");
     const continueButton = document.getElementById(
-      "lyzr-credit-warning-continue",
+      "lyzr-credit-warning-continue"
     );
     const redirectButton = document.getElementById(
-      "lyzr-credit-warning-redirect",
+      "lyzr-credit-warning-redirect"
     );
 
     if (closeButton) {
       closeButton.addEventListener("click", () =>
-        this.hideCreditWarningModal(),
+        this.hideCreditWarningModal()
       );
     }
 
     if (continueButton) {
       continueButton.addEventListener("click", () =>
-        this.hideCreditWarningModal(),
+        this.hideCreditWarningModal()
       );
     }
 
@@ -771,7 +773,7 @@ class LyzrAgent {
     }
     if (this.creditWarningModal) {
       const messageElement = document.getElementById(
-        "lyzr-credit-warning-message",
+        "lyzr-credit-warning-message"
       );
       if (messageElement) {
         messageElement.textContent = `You have ${remainingCredits} credits remaining. Consider topping up to ensure uninterrupted service.`;
