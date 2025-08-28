@@ -369,10 +369,20 @@ body {
 }
 
 body {
+	height: 100vh;
+  transition: background 0.8s ease-in-out;
+  /* Default to gradient background on initial load */
 	background: linear-gradient(-45deg, #603BFC40, #A94FA140, #FF683540, #D3B3E440);
 	animation: gradient 16s ease infinite;
   background-size: 200% 200%;
-	height: 100vh;
+}
+
+/* Remove gradient when conversation is active */
+
+/* Solid background for conversation state */
+body.no-gradient-background {
+	background: var(--background);
+	animation: none;
 }
 
 .white-gradient {

@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { Analytics } from "@vercel/analytics/react";
 import { Navbar } from "@/components/nav";
 import { Footer } from "@/components/footer";
+import { GradientManager } from "@/components/gradient-manager";
 
 const mono = Mono({
   subsets: ["latin"],
@@ -56,7 +57,7 @@ export default function RootLayout({
             mono.variable
           )}
         >
-          <div className="white-gradient w-full h-full transition-all duration-300">
+          <div id="white-gradient" className="white-gradient w-full h-full transition-all duration-300 fixed top-0 left-0 -z-20"></div>
             <Providers>
               <ThemeProvider
                 attribute="class"
@@ -64,18 +65,19 @@ export default function RootLayout({
                 enableSystem
                 disableTransitionOnChange
               >
-                <div className="relative flex min-h-screen flex-col">
-                  <Navbar />
-                  <main className="flex-1 pt-16 pb-16 flex flex-col justify-center">
-                    {children}
-                  </main>
-                  <Footer />
-                </div>
-                <Toaster />
-                <Analytics />
+              <div className="relative flex min-h-screen flex-col">
+                <GradientManager />
+                <Navbar />
+                <main className="flex-1 pt-16 pb-16 flex flex-col justify-center">
+                  {children}
+                </main>
+                <Footer />
+              </div>
+              <Toaster />
+              <Analytics />
               </ThemeProvider>
             </Providers>
-          </div>
+          
         </body>
       </html>
     </>

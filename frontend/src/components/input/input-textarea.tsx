@@ -16,7 +16,7 @@ export const InputTextarea = ({
 }: InputTextareaProps) => {
   return (
     <TextareaAutosize
-      className="w-full bg-transparent text-md resize-none focus:outline-none p-2"
+      className="w-full bg-transparent text-md resize-none focus:outline-none p-2 z-20"
       placeholder={placeholder}
       onChange={(e) => setInput(e.target.value)}
       value={input}
