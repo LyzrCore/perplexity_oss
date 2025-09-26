@@ -36,11 +36,11 @@ export const Section = ({
         animate ? "animate-in fade-in duration-1000 ease-out" : "",
       )}
     >
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-2 text-muted-foreground">
         {title === "Answer" && streaming ? (
           <motion.div
             animate={{ rotate: [0, 360] }}
-            transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+            transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
           >
             <IconComponent size={22} />
           </motion.div>

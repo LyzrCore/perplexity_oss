@@ -69,7 +69,7 @@ const timelineDotVariants = cva(
   {
     variants: {
       status: {
-        default: "[&>*]:hidden border-tint border-[0.5px]",
+        default: "*:hidden border-tint border-[0.5px]",
         current:
           "[&>*:not(.radix-circle)]:hidden [&>.radix-circle]:bg-tint [&>.radix-circle]:fill-tint [&>.radix-circle]:size-3",
         done: "bg-tint [&>*:not(.radix-check)]:hidden [&>.radix-check]:text-background [&>.radix-check]:size-2",

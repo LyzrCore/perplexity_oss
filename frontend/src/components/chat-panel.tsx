@@ -76,7 +76,7 @@ export const ChatPanel = ({ threadId }: { threadId?: number }) => {
       ) : (
         <ChatEmptyState>
           <AskInput sendMessage={handleSend} />
-          <div className="w-full flex flex-row px-3 justify-between space-y-2 pt-1">
+          <div className="w-full flex flex-row justify-between space-y-2 pt-1">
             <StarterQuestionsList handleSend={handleSend} />
           </div>
         </ChatEmptyState>

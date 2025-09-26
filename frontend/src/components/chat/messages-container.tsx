@@ -48,7 +48,7 @@ export const MessagesContainer = forwardRef<HTMLDivElement, MessagesContainerPro
         />
         <div className="h-0" />
         <div
-          className="bottom-12 fixed px-2 max-w-screen-md justify-center items-center md:px-2"
+          className="bottom-12 fixed px-2 max-w-(--breakpoint-md) justify-center items-center md:px-2"
           style={{ width: `${width}px` }}
         >
           <AskInput isFollowingUp sendMessage={onSend} />
