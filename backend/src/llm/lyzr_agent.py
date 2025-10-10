@@ -142,7 +142,7 @@ class LyzrAgentLLM(BaseLLM):
                                 if not line:
                                     continue
                                 
-                                # Check for end marker
+                                # Check for end marker (before stripping prefix)
                                 if line == "[DONE]":
                                     print("  Stream completed: [DONE]")
                                     break
@@ -150,6 +150,14 @@ class LyzrAgentLLM(BaseLLM):
                                 # Lyzr's stream endpoint already includes "data: " prefix - strip it
                                 if line.startswith("data: "):
                                     token = line[6:]  # Remove "data: " prefix
+                                    
+                                    # Also check for [DONE] after stripping prefix
+                                    if token == "[DONE]":
+                                        print("  Stream completed: [DONE] (after prefix strip)")
+                                        break
+                                    
+                                    # Convert literal \n to actual newlines for markdown rendering
+                                    token = token.replace("\\n", "\n")
                                     
                                     # Lyzr API already includes proper spacing in tokens!
                                     # Tokens come with leading spaces when needed (e.g., "data:  I")
