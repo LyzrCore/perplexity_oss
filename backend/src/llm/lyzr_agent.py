@@ -43,9 +43,14 @@ class LyzrAgentLLM(BaseLLM):
             "x-api-key": self.api_key,
         }
 
-    def _build_url(self) -> str:
+    def _build_url(self, streaming: bool = False) -> str:
         """Build the API URL for chat completions"""
-        return f"{self.api_base}/v3/inference/{self.agent_id}/chat/completions"
+        if streaming:
+            # Use the streaming endpoint that returns plain text tokens
+            return f"{self.api_base}/v3/inference/stream/"
+        else:
+            # Use the chat completions endpoint for non-streaming
+            return f"{self.api_base}/v3/inference/{self.agent_id}/chat/completions"
 
     def _format_messages(self, prompt: str) -> List[Dict[str, Any]]:
         """Format prompt as messages for Lyzr API"""
@@ -84,21 +89,24 @@ class LyzrAgentLLM(BaseLLM):
                 )
                 return
 
+            # Use the streaming endpoint with the correct payload format
             payload = {
-                "model": "lyzr-agent",  # Using a generic model name
-                "messages": self._format_messages(prompt),
-                "stream": True,
+                "user_id": "default_user",
+                "system_prompt_variables": {},
+                "agent_id": self.agent_id,
+                "session_id": "default_session",  # You might want to make this dynamic
+                "message": prompt,
             }
 
             print(f"Streaming to Lyzr API:")
-            print(f"  URL: {self._build_url()}")
+            print(f"  URL: {self._build_url(streaming=True)}")
             print(f"  Headers: {self.headers}")
             print(f"  Payload: {payload}")
 
             async with aiohttp.ClientSession() as session:
                 try:
                     async with session.post(
-                        self._build_url(), headers=self.headers, json=payload
+                        self._build_url(streaming=True), headers=self.headers, json=payload
                     ) as response:
                         print(f"Received streaming response from Lyzr API:")
                         print(f"  Status: {response.status}")
@@ -111,63 +119,37 @@ class LyzrAgentLLM(BaseLLM):
                                 f"Lyzr API error {response.status}: {error_text}"
                             )
 
-                        # Handle streaming JSON chunks from Lyzr API
+                        # OLD CODE - Commented out (was parsing JSON chunks)
+                        # buffer = ""
+                        # async for chunk in response.content.iter_chunked(8192):
+                        #     chunk_str = chunk.decode("utf-8")
+                        #     buffer += chunk_str
+                        #     print(f"  Streaming chunk received: {chunk_str}")
+                        #     # ... JSON parsing logic ...
+
+                        # NEW CODE - Handle plain text SSE tokens from /v3/inference/stream/
                         buffer = ""
                         async for chunk in response.content.iter_chunked(8192):
                             chunk_str = chunk.decode("utf-8")
                             buffer += chunk_str
-                            print(f"  Streaming chunk received: {chunk_str}")
+                            print(f"  Stream chunk received: {repr(chunk_str)}")
 
-                            # Try to parse complete JSON objects from the buffer
-                            while buffer:
-                                try:
-                                    # Find the end of a JSON object
-                                    obj, idx = json.JSONDecoder().raw_decode(buffer)
-                                    buffer = buffer[idx:].lstrip()
-
-                                    print(f"  Parsed streaming JSON: {obj}")
-
-                                    # Extract content from streaming chunk - handle Lyzr's structure
-                                    if "choices" in obj and len(obj["choices"]) > 0:
-                                        choice = obj["choices"][0]
-                                        if (
-                                            "message" in choice
-                                            and "content" in choice["message"]
-                                        ):
-                                            content = choice["message"]["content"]
-
-                                            # Handle nested response structure from Lyzr
-                                            if (
-                                                isinstance(content, dict)
-                                                and "response" in content
-                                            ):
-                                                content = content["response"]
-
-                                            if content:
-                                                print(
-                                                    f"  Extracted streaming content: {content}"
-                                                )
-                                                yield CompletionResponse(
-                                                    text="",  # Full text not available in streaming
-                                                    delta=str(content),
-                                                )
-                                        # Also handle delta format if Lyzr uses it
-                                        elif (
-                                            "delta" in choice
-                                            and "content" in choice["delta"]
-                                        ):
-                                            content = choice["delta"]["content"]
-                                            if content:
-                                                print(
-                                                    f"  Extracted delta content: {content}"
-                                                )
-                                                yield CompletionResponse(
-                                                    text="", delta=str(content)
-                                                )
-
-                                except json.JSONDecodeError:
-                                    # Not enough data for a complete JSON object yet
+                            # Process complete lines (each token is on its own line)
+                            while "\n" in buffer:
+                                line, buffer = buffer.split("\n", 1)
+                                line = line.strip()
+                                
+                                if not line:
+                                    continue
+                                
+                                # Check for end marker
+                                if line == "[DONE]":
+                                    print("  Stream completed: [DONE]")
                                     break
+                                
+                                # Each line is a plain text token
+                                print(f"  Token received: {repr(line)}")
+                                yield CompletionResponse(text="", delta=line)
 
                 except Exception as e:
                     # If streaming fails, fall back to non-streaming
