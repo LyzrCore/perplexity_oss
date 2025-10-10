@@ -379,31 +379,45 @@ body {
 
 /* Custom markdown styling to override prose classes */
 .prose h1 {
-  @apply text-3xl font-bold mb-4 !important;
+  font-size: 1.875rem !important; /* text-3xl */
+  font-weight: 700 !important; /* font-bold */
+  margin-bottom: 1rem !important; /* mb-4 */
 }
 
 .prose h2 {
-  @apply text-2xl font-bold mb-3 !important;
+  font-size: 1.5rem !important; /* text-2xl */
+  font-weight: 700 !important; /* font-bold */
+  margin-bottom: 0.75rem !important; /* mb-3 */
 }
 
 .prose h3 {
-  @apply text-xl font-bold mb-3 !important;
+  font-size: 1.25rem !important; /* text-xl */
+  font-weight: 700 !important; /* font-bold */
+  margin-bottom: 0.75rem !important; /* mb-3 */
 }
 
 .prose p {
-  @apply my-3 !important;
+  margin-top: 0.75rem !important; /* my-3 */
+  margin-bottom: 0.75rem !important; /* my-3 */
 }
 
 .prose ul {
-  @apply list-disc ml-6 my-3 !important;
+  list-style-type: disc !important; /* list-disc */
+  margin-left: 1.5rem !important; /* ml-6 */
+  margin-top: 0.75rem !important; /* my-3 */
+  margin-bottom: 0.75rem !important; /* my-3 */
 }
 
 .prose ol {
-  @apply list-decimal ml-6 my-3 !important;
+  list-style-type: decimal !important; /* list-decimal */
+  margin-left: 1.5rem !important; /* ml-6 */
+  margin-top: 0.75rem !important; /* my-3 */
+  margin-bottom: 0.75rem !important; /* my-3 */
 }
 
 .prose li {
-  @apply my-1 !important;
+  margin-top: 0.25rem !important; /* my-1 */
+  margin-bottom: 0.25rem !important; /* my-1 */
 }
 
 /* Remove gradient when conversation is active */
