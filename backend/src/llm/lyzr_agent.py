@@ -147,9 +147,17 @@ class LyzrAgentLLM(BaseLLM):
                                     print("  Stream completed: [DONE]")
                                     break
                                 
-                                # Each line is a plain text token
-                                print(f"  Token received: {repr(line)}")
-                                yield CompletionResponse(text="", delta=line)
+                                # Lyzr's stream endpoint already includes "data: " prefix - strip it
+                                if line.startswith("data: "):
+                                    token = line[6:]  # Remove "data: " prefix
+                                    
+                                    # Lyzr API already includes proper spacing in tokens!
+                                    # Tokens come with leading spaces when needed (e.g., "data:  I")
+                                    # and without spaces when continuing a word (e.g., "data: uc" in "Hallucination")
+                                    print(f"  Token received: {repr(token)}")
+                                    
+                                    if token:  # Only yield non-empty tokens
+                                        yield CompletionResponse(text="", delta=token)
 
                 except Exception as e:
                     # If streaming fails, fall back to non-streaming
