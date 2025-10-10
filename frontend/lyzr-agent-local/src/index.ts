@@ -13,9 +13,12 @@ class LyzrAgent {
   private apiKey: string = "";
   private authStateCallbacks: ((isAuthenticated: boolean) => void)[] = [];
   //private pagosUrl = "https://pagos-prod.studio.lyzr.ai";
-  private pagosUrl = "https://pagos-dev.test.studio.lyzr.ai";
-  private agentStudioUrl = "https://dev.test.studio.lyzr.ai/auth/sign-in";
-  private agentStudioUrlSignup = "https://dev.test.studio.lyzr.ai/auth/sign-up";
+  // private pagosUrl = "https://pagos-dev.test.studio.lyzr.ai";
+  // private agentStudioUrl = "https://dev.test.studio.lyzr.ai/auth/sign-in";
+  // private agentStudioUrlSignup = "https://dev.test.studio.lyzr.ai/auth/sign-up";
+  private pagosUrl = "https://pagos-prod.studio.lyzr.ai";
+  private agentStudioUrl = "https://studio.lyzr.ai/auth/sign-in";
+  private agentStudioUrlSignup = "https://studio.lyzr.ai/auth/sign-up";
   private badgePosition = {
     x: "right: 20px",
     y: "bottom: 20px",
