@@ -41,7 +41,7 @@ async def verify_with_pagos(
     Helper function to verify with pagos service with retry logic
     """
     pagos_base_url = os.getenv(
-        "PAGOS_BASE_URL", "https://pagos-dev.test.studio.lyzr.ai"
+        "PAGOS_BASE_URL", "https://pagos-prod.studio.lyzr.ai" # "https://pagos-dev.test.studio.lyzr.ai"
     )
     url = f"{pagos_base_url}/keys/user"
 

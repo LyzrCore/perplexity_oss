@@ -314,8 +314,11 @@ async def stream_pro_search_qa(
             )
 
         # Initialize specialized agents with user credentials
+        # Use LYZR_API_KEY from env with user.api_key fallback
+        import os
+        api_key = os.getenv("LYZR_API_KEY") or (user.api_key if user else None)
         specialized_agents = LyzrSpecializedAgents(
-            api_key=user.api_key if user else None,
+            api_key=api_key,
             api_base=None  # Use default
         )
 
