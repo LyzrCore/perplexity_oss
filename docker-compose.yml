@@ -3,6 +3,8 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    expose:
+      - 8000
     ports:
       - "8003:8000"
     environment:
@@ -28,6 +30,8 @@ services:
       args:
         - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
         - NEXT_PUBLIC_PRO_MODE_ENABLED=${NEXT_PUBLIC_PRO_MODE_ENABLED}
+    expose:
+      - 3000
     ports:
       - "3003:3000"
     depends_on:
@@ -37,6 +41,8 @@ services:
 
   searxng:
     image: docker.io/searxng/searxng:latest
+    expose:
+      - 8080
     ports:
       - "8083:8080"
     volumes:
