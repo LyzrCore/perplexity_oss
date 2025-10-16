@@ -328,11 +328,28 @@ async def stream_pro_search_qa(
         query = rephrase_query_with_history(
             request.query, request.history, specialized_agents
         )
-        async for event in stream_pro_search_objects(
-            request, specialized_agents, query, session
-        ):
-            yield event
-            await asyncio.sleep(0)
+
+        # Try pro search, fallback to regular search if it fails
+        try:
+            async for event in stream_pro_search_objects(
+                request, specialized_agents, query, session
+            ):
+                yield event
+                await asyncio.sleep(0)
+        except Exception as pro_error:
+            # Pro search failed - log and fallback to regular search
+            print(f"⚠️ Pro search failed: {pro_error}")
+            print("   Falling back to regular search mode...")
+
+            # Import and use regular search
+            from chat import stream_qa_objects
+            async for event in stream_qa_objects(
+                request=request,
+                session=session,
+                user=user
+            ):
+                yield event
+                await asyncio.sleep(0)
 
     except Exception as e:
         detail = str(e)

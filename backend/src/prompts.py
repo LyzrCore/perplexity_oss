@@ -75,30 +75,35 @@ Instructions for creating the Query Plan:
 4. The first step should always have an empty dependencies array.
 5. Subsequent steps should list all step ids they depend on.
 
-Example Query:
-Given the query "Compare Perplexity and You.com in terms of revenue, number of employees, and valuation"
+CRITICAL: Return ONLY the query plan data in this exact format. DO NOT return the schema definition itself.
 
-Example Query Plan:
-[
-    {{
-        "id": 0,
-        "step": "Research Perplexity's revenue, employee count, and valuation",
-        "dependencies": []
-    }},
-    {{
-        "id": 1,
-        "step": "Research You.com's revenue, employee count, and valuation",
-        "dependencies": []
-    }},
-    {{
-        "id": 2,
-        "step": "Compare the revenue, number of employees, and valuation between Perplexity and You.com",
-        "dependencies": [0, 1]
-    }}
-]
+Example Query:
+"Compare Perplexity and You.com in terms of revenue, number of employees, and valuation"
+
+Example Response (return data in this format):
+{{
+    "steps": [
+        {{
+            "id": 0,
+            "step": "Research Perplexity's revenue, employee count, and valuation",
+            "dependencies": []
+        }},
+        {{
+            "id": 1,
+            "step": "Research You.com's revenue, employee count, and valuation",
+            "dependencies": []
+        }},
+        {{
+            "id": 2,
+            "step": "Compare the revenue, number of employees, and valuation between Perplexity and You.com",
+            "dependencies": [0, 1]
+        }}
+    ]
+}}
 
 Query: {query}
-Query Plan (with a final summarize/combine/compare step):
+
+Return the query plan in the exact format shown above (with a "steps" array containing objects with "id", "step", and "dependencies" fields):
 """
 
 SEARCH_QUERY_PROMPT = """\

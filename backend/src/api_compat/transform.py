@@ -138,14 +138,13 @@ async def internal_to_openai_stream(
     yield f"data: {initial_chunk.model_dump_json()}\n\n"
 
     async for event_data in internal_stream:
-        # event_data is already a dict from the internal stream
-        if isinstance(event_data, str):
-            # If it's a string, parse it
-            import json
-            event_data = json.loads(event_data)
+        # event_data is a ChatResponseEvent Pydantic object
+        # Convert to dict for easier access
+        from fastapi.encoders import jsonable_encoder
+        event_dict = jsonable_encoder(event_data)
 
-        event_type = event_data.get("event")
-        data = event_data.get("data", {})
+        event_type = event_dict.get("event")
+        data = event_dict.get("data", {})
 
         if event_type == StreamEvent.TEXT_CHUNK:
             # Stream text content
