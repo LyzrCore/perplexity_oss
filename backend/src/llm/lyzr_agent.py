@@ -419,31 +419,30 @@ class LyzrSpecializedAgents:
         self.api_key = api_key or os.getenv("LYZR_API_KEY")
         self.api_base = api_base or os.getenv("LYZR_API_BASE", "https://agent-prod.studio.lyzr.ai")
 
-        # Load agent IDs using agent manager (auto-creates if needed)
-        # This uses priority: ENV vars → config file → auto-create
-        from config.agent_manager import load_agent_config
+        # Load agent IDs using agent manager (sync - no auto-creation in __init__)
+        # Priority: ENV vars → config file
+        # Note: Auto-creation should happen at app startup, not per-request
+        from config.agent_manager import load_agent_config_sync
 
-        try:
-            agent_ids = load_agent_config(api_key=self.api_key, api_base=self.api_base)
-        except Exception as e:
-            print(f"⚠ Warning: Could not load/create agents: {e}")
-            print("Falling back to environment variables...")
-            agent_ids = None
+        agent_ids = load_agent_config_sync(api_key=self.api_key, api_base=self.api_base)
 
-        # If agent_manager failed, fall back to env vars (backward compatibility)
         if agent_ids:
+            # Loaded from env or config file
             self.query_rephrase_agent_id = agent_ids.get("query_rephrase")
             self.answer_generation_agent_id = agent_ids.get("answer_generation")
             self.related_questions_agent_id = agent_ids.get("related_questions")
             self.query_planning_agent_id = agent_ids.get("query_planning")
             self.search_query_agent_id = agent_ids.get("search_query")
         else:
-            # Fallback to environment variables
-            self.query_rephrase_agent_id = os.getenv("LYZR_QUERY_REPHRASE_AGENT_ID")
-            self.answer_generation_agent_id = os.getenv("LYZR_ANSWER_GENERATION_AGENT_ID")
-            self.related_questions_agent_id = os.getenv("LYZR_RELATED_QUESTIONS_AGENT_ID")
-            self.query_planning_agent_id = os.getenv("LYZR_QUERY_PLANNING_AGENT_ID")
-            self.search_query_agent_id = os.getenv("LYZR_SEARCH_QUERY_AGENT_ID")
+            # No agents found - will need to be created at startup
+            # For now, set to None and will fail with clear error message
+            print("⚠ Warning: No agent IDs found in environment or config file.")
+            print("   Please run agent creation at app startup or set environment variables.")
+            self.query_rephrase_agent_id = None
+            self.answer_generation_agent_id = None
+            self.related_questions_agent_id = None
+            self.query_planning_agent_id = None
+            self.search_query_agent_id = None
 
         # Cache agents to avoid recreation
         self._agents_cache = {}

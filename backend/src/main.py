@@ -49,7 +49,7 @@ def create_app() -> FastAPI:
         description="AI-powered search engine powered by Lyzr AI",
         version="1.0.0",
     )
-    
+
     # Configure CORS middleware
     app.add_middleware(
         CORSMiddleware,
@@ -58,11 +58,35 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    
+
     return app
 
 
 app = create_app()
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize agents on application startup."""
+    print("\n" + "=" * 70)
+    print("🚀 Perplexity OSS - Initializing...")
+    print("=" * 70 + "\n")
+
+    try:
+        from config.agent_manager import ensure_agents_exist_async
+
+        # Ensure all agents exist (will auto-create if needed)
+        agent_ids = await ensure_agents_exist_async()
+
+        print("\n✅ All agents initialized successfully!")
+        print(f"   Agent IDs: {list(agent_ids.keys())}")
+
+    except Exception as e:
+        print(f"\n⚠️  Warning: Could not initialize agents: {e}")
+        print("   The application will still start, but may fail on requests.")
+        print("   Please check your LYZR_API_KEY and try again.\n")
+        import traceback
+        traceback.print_exc()
 
 
 @app.get("/health")

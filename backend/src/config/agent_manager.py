@@ -72,9 +72,10 @@ class AgentConfigManager:
         """
         agent_ids = {}
         for role, env_var in ENV_VAR_MAP.items():
-            agent_id = os.getenv(env_var)
-            if not agent_id or agent_id.startswith("your_"):
-                # Missing or placeholder value
+            agent_id = os.getenv(env_var, "").strip()
+            # Skip if empty, None, or placeholder value
+            if not agent_id or agent_id.startswith("your_") or agent_id == "":
+                # Missing or placeholder value - need to check all before returning None
                 return None
             agent_ids[role] = agent_id
 
@@ -179,7 +180,17 @@ class AgentConfigManager:
                     response.raise_for_status()
 
                     result = response.json()
-                    agent_id = str(result["id"])
+                    print(f"API Response for {role}: {result}")
+
+                    # Handle different response structures
+                    if "id" in result:
+                        agent_id = str(result["id"])
+                    elif "agent_id" in result:
+                        agent_id = str(result["agent_id"])
+                    elif isinstance(result, dict) and "data" in result and "id" in result["data"]:
+                        agent_id = str(result["data"]["id"])
+                    else:
+                        raise Exception(f"Could not find agent ID in response: {result}")
 
                     print(f"✓ Created {role} agent with ID: {agent_id}")
                     return agent_id
@@ -305,21 +316,34 @@ class AgentConfigManager:
         return agent_id
 
 
-# Convenience function for synchronous usage
-def load_agent_config(api_key: str = None, api_base: str = None) -> Dict[str, str]:
+# Synchronous loading (without auto-creation)
+def load_agent_config_sync(api_key: str = None, api_base: str = None) -> Optional[Dict[str, str]]:
     """
-    Synchronous wrapper for loading agent configuration.
-    Use this in non-async contexts.
+    Synchronously load agent configuration from env or file.
+    Does NOT auto-create agents (use ensure_agents_exist_async for that).
+    Returns None if agents need to be created.
     """
-    import asyncio
-
     manager = AgentConfigManager(api_key, api_base)
 
-    # Run async function in sync context
-    try:
-        loop = asyncio.get_event_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+    # Try environment variables first
+    agent_ids = manager.load_from_env()
+    if agent_ids:
+        return agent_ids
 
-    return loop.run_until_complete(manager.ensure_agents_exist())
+    # Try config file
+    agent_ids = manager.load_from_file()
+    if agent_ids:
+        return agent_ids
+
+    # No agents found - caller should create them
+    return None
+
+
+# Async function for auto-creation
+async def ensure_agents_exist_async(api_key: str = None, api_base: str = None) -> Dict[str, str]:
+    """
+    Async function to ensure agents exist (will auto-create if needed).
+    Use this at app startup or in async contexts.
+    """
+    manager = AgentConfigManager(api_key, api_base)
+    return await manager.ensure_agents_exist()
