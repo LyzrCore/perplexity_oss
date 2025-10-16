@@ -137,17 +137,16 @@ Each agent should be configured in Lyzr Agent Studio with specific prompts and c
 | Variable | Required | Description | Default |
 |----------|----------|-------------|---------|
 | `LYZR_API_KEY` | ✅ | Your Lyzr Agent Studio API key | - |
-| `LYZR_DEFAULT_AGENT_ID` | ✅ | ID for general chat agent | - |
-| `LYZR_QUERY_REPHRASE_AGENT_ID` | ✅ | ID for query rephrasing agent | - |
-| `LYZR_ANSWER_GENERATION_AGENT_ID` | ✅ | ID for answer generation agent | - |
-| `LYZR_RELATED_QUESTIONS_AGENT_ID` | ✅ | ID for related questions agent | - |
-| `LYZR_QUERY_PLANNING_AGENT_ID` | ⚠️ | ID for query planning agent (Pro mode) | - |
-| `LYZR_SEARCH_QUERY_AGENT_ID` | ⚠️ | ID for search query agent (Pro mode) | - |
+| `LYZR_QUERY_REPHRASE_AGENT_ID` | 🤖 | ID for query rephrasing agent | Auto-created |
+| `LYZR_ANSWER_GENERATION_AGENT_ID` | 🤖 | ID for answer generation agent | Auto-created |
+| `LYZR_RELATED_QUESTIONS_AGENT_ID` | 🤖 | ID for related questions agent | Auto-created |
+| `LYZR_QUERY_PLANNING_AGENT_ID` | 🤖 | ID for query planning agent (Pro mode) | Auto-created |
+| `LYZR_SEARCH_QUERY_AGENT_ID` | 🤖 | ID for search query agent (Pro mode) | Auto-created |
 | `NEXT_PUBLIC_PRO_MODE_ENABLED` | ❌ | Enable advanced pro search features | `true` |
 | `NEXT_PUBLIC_API_URL` | ❌ | Backend API URL for frontend | `http://localhost:8000` |
 | `SEARXNG_BASE_URL` | ❌ | SearXNG instance URL | `http://searxng:8080` |
 
-⚠️ = Required only if Pro Mode is enabled
+🤖 = Auto-created on first run if not provided
 
 ### Development Setup
 

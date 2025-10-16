@@ -412,26 +412,6 @@ Please provide exactly 3 related follow-up questions, one per line, in this form
         return response_model(related_questions=questions)
 
 
-class LyzrAgentProvider:
-    """Factory for creating LyzrAgentLLM instances"""
-
-    @staticmethod
-    def create_agent(
-        agent_id: str, api_key: str = None, api_base: str = None
-    ) -> LyzrAgentLLM:
-        """Create a new LyzrAgentLLM instance"""
-        return LyzrAgentLLM(agent_id=agent_id, api_key=api_key, api_base=api_base)
-
-    @staticmethod
-    def get_default_agent() -> LyzrAgentLLM:
-        """Get the default agent from environment variables"""
-        agent_id = os.getenv("LYZR_DEFAULT_AGENT_ID")
-        if not agent_id:
-            raise ValueError("LYZR_DEFAULT_AGENT_ID environment variable is required")
-
-        return LyzrAgentProvider.create_agent(agent_id)
-
-
 class LyzrSpecializedAgents:
     """Manager for specialized Lyzr agents for different tasks"""
 
