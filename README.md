@@ -39,40 +39,46 @@ git clone <your-repo-url>
 cd perplexity_oss
 ```
 
-### 2. Configure Environment Variables
+### 2. Get Your Lyzr API Key
 
-Create a `.env` file in the root directory:
+1. Visit [Lyzr Agent Studio](https://studio.lyzr.ai)
+2. Create an account or sign in
+3. Get your API key from the dashboard
+
+### 3. Configure Environment Variables
+
+Create a `.env` file in the root directory with **just your API key**:
 
 ```bash
-# Required: Lyzr Agent Studio Configuration
+# Required: Lyzr API key
+LYZR_API_KEY=your_actual_lyzr_api_key_here
+
+# Optional: Feature Configuration
+NEXT_PUBLIC_PRO_MODE_ENABLED=true
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
+
+**That's it!** The application will automatically create all required Lyzr agents on first startup. Agent IDs will be saved to persist across restarts.
+
+<details>
+<summary>📝 Advanced: Manual Agent Configuration (Optional)</summary>
+
+If you prefer to create agents manually in Lyzr Studio:
+
+1. Clone the Perplexity OSS blueprint in Lyzr Agent Studio
+2. Copy each agent ID and add to your `.env` file:
+
+```bash
 LYZR_API_KEY=your_lyzr_api_key_here
-LYZR_DEFAULT_AGENT_ID=your_default_agent_id
 LYZR_QUERY_REPHRASE_AGENT_ID=your_query_rephrase_agent_id
 LYZR_ANSWER_GENERATION_AGENT_ID=your_answer_generation_agent_id
 LYZR_RELATED_QUESTIONS_AGENT_ID=your_related_questions_agent_id
 LYZR_QUERY_PLANNING_AGENT_ID=your_query_planning_agent_id
 LYZR_SEARCH_QUERY_AGENT_ID=your_search_query_agent_id
-
-# Optional: Feature Configuration
-NEXT_PUBLIC_PRO_MODE_ENABLED=true
-NEXT_PUBLIC_API_URL=http://localhost:8000
-
-# Optional: SearXNG Configuration
-SEARXNG_BASE_URL=http://searxng:8080
 ```
 
-### 3. Get Your Lyzr Agent Studio Credentials
-
-1. Visit [Lyzr Agent Studio](https://studio.lyzr.ai)
-2. Create an account or sign in
-3. Create specialized agents for each task:
-   - **Default Agent**: General purpose chat agent
-   - **Query Rephrase Agent**: Reformulates user queries with context
-   - **Answer Generation Agent**: Generates comprehensive answers from search results
-   - **Related Questions Agent**: Creates follow-up questions
-   - **Query Planning Agent**: Plans multi-step search strategies (Pro mode)
-   - **Search Query Agent**: Converts natural language to search queries (Pro mode)
-4. Copy your API key and agent IDs to the `.env` file
+See `.env.example` for all configuration options.
+</details>
 
 ### 4. Launch the Application
 
