@@ -2,9 +2,14 @@
 
 ## Overview
 
-Perplexity OSS provides OpenAI-compatible REST endpoints at `/v1/*` that allow external applications to use this as a drop-in replacement for chat completion APIs.
+Perplexity OSS provides OpenAI-compatible REST endpoints at `/v1/*` that allow external applications to use this as a drop-in replacement for chat completion and search APIs.
 
 **Base URL:** `http://localhost:8003/v1` (adjust port/domain for your deployment)
+
+**Available Endpoints:**
+- `POST /v1/chat/completions` - Chat with AI-powered search and answers
+- `POST /v1/search` - Search only (no AI answer generation)
+- `GET /v1/models` - List available models
 
 ## Authentication
 
@@ -149,6 +154,69 @@ data: [DONE]
 - Final chunk includes `finish_reason: "stop"`
 - Stream ends with `data: [DONE]`
 
+### POST /v1/search
+
+Perplexity-compatible search endpoint. Returns ranked search results without AI-generated answers.
+
+#### Request
+
+```http
+POST /v1/search
+Content-Type: application/json
+Authorization: Bearer sk-your-secret-key-here
+```
+
+**Body:**
+
+```json
+{
+  "query": "latest AI developments 2024",
+  "max_results": 10,
+  "search_domain_filter": ["science.org", "arxiv.org"],
+  "max_tokens_per_page": 1024,
+  "country": "US"
+}
+```
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `query` | string or array | required | Search query or list of queries (max 5) |
+| `max_results` | integer | `10` | Maximum number of results to return (1-20) |
+| `search_domain_filter` | array | `null` | Limit search to specific domains (max 20) |
+| `max_tokens_per_page` | integer | `1024` | Accepted but not used (SearXNG limitation) |
+| `country` | string | `null` | Accepted but not used (SearXNG limitation) |
+
+**Note on Multi-Query Search:**
+- If `query` is an array, only the first query is executed due to SearXNG limitations
+- Example: `["query 1", "query 2"]` → only "query 1" is searched
+
+#### Response
+
+```json
+{
+  "results": [
+    {
+      "title": "Understanding Artificial Intelligence",
+      "url": "https://science.org/article/ai-developments",
+      "snippet": "Recent advances in AI technology...",
+      "date": null,
+      "last_updated": null
+    },
+    {
+      "title": "Machine Learning Breakthroughs",
+      "url": "https://arxiv.org/abs/2024.12345",
+      "snippet": "A comprehensive survey of ML techniques...",
+      "date": null,
+      "last_updated": null
+    }
+  ]
+}
+```
+
+**Note:** `date` and `last_updated` fields are always `null` because SearXNG doesn't provide this information.
+
 ### GET /v1/models
 
 List available models.
@@ -221,6 +289,19 @@ curl http://localhost:8003/v1/chat/completions \
     "search_recency_filter": "week",
     "search_domain_filter": ["arxiv.org", "paperswithcode.com"],
     "return_related_questions": true
+  }'
+```
+
+### cURL - Search Only
+
+```bash
+curl http://localhost:8003/v1/search \
+  -H "Authorization: Bearer sk-your-secret-key-here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "quantum computing breakthrough",
+    "max_results": 5,
+    "search_domain_filter": ["science.org", "nature.com"]
   }'
 ```
 

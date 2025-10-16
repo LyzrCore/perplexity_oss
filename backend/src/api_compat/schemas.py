@@ -129,3 +129,63 @@ class ChatCompletionChunk(BaseModel):
     created: int
     model: str
     choices: List[ChatCompletionChunkChoice]
+
+
+# ============================================================================
+# Search API Schemas (Perplexity-compatible)
+# ============================================================================
+
+
+class SearchRequest(BaseModel):
+    """
+    Perplexity-compatible search request.
+
+    Note: Some fields are accepted but may not affect results due to
+    SearXNG limitations (max_tokens_per_page, country).
+    """
+    query: Union[str, List[str]] = Field(
+        ...,
+        description="Search query or list of queries (max 5 for multi-query)"
+    )
+    max_results: int = Field(
+        default=10,
+        ge=1,
+        le=20,
+        description="Maximum number of search results to return"
+    )
+    search_domain_filter: Optional[List[str]] = Field(
+        default=None,
+        max_items=20,
+        description="Limit search to specific domains"
+    )
+    max_tokens_per_page: Optional[int] = Field(
+        default=1024,
+        description="Max tokens per page (accepted but not used)"
+    )
+    country: Optional[str] = Field(
+        default=None,
+        description="Country code filter (accepted but not used)"
+    )
+
+
+class SearchResultItem(BaseModel):
+    """Single search result in Perplexity format"""
+    title: str = Field(..., description="Title of the search result")
+    url: str = Field(..., description="URL of the search result")
+    snippet: str = Field(..., description="Brief excerpt or summary")
+    date: Optional[str] = Field(
+        default=None,
+        description="Date crawled (not available from SearXNG)"
+    )
+    last_updated: Optional[str] = Field(
+        default=None,
+        description="Date last updated (not available from SearXNG)"
+    )
+
+
+class SearchResponse(BaseModel):
+    """Perplexity-compatible search response"""
+    results: List[SearchResultItem] = Field(
+        ...,
+        description="Array of search results"
+    )

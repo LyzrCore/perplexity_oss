@@ -11,15 +11,23 @@ from fastapi.encoders import jsonable_encoder
 from sse_starlette.sse import EventSourceResponse
 
 from api_compat.middleware import verify_api_key
-from api_compat.schemas import ChatCompletionRequest, ChatCompletionResponse
+from api_compat.schemas import (
+    ChatCompletionRequest,
+    ChatCompletionResponse,
+    SearchRequest,
+    SearchResponse,
+    SearchResultItem,
+)
 from api_compat.transform import (
     openai_to_internal,
     internal_to_openai_stream,
     internal_to_openai_complete,
+    apply_domain_filter,
 )
 from chat import stream_qa_objects
 from agent_search import stream_pro_search_qa
 from schemas import StreamEvent
+from search.search_service import perform_search
 
 # Create router for compatibility endpoints
 router = APIRouter(prefix="/v1", tags=["OpenAI Compatible"])
@@ -224,3 +232,64 @@ async def list_models(api_key: str = Depends(verify_api_key)):
             }
         ]
     }
+
+
+@router.post("/search")
+async def search(
+    search_request: SearchRequest,
+    api_key: str = Depends(verify_api_key),
+) -> SearchResponse:
+    """
+    Perplexity-compatible search endpoint.
+
+    Returns ranked search results with optional domain filtering.
+
+    Note: Due to SearXNG limitations:
+    - Multi-query search (array of queries) executes only the first query
+    - max_tokens_per_page is accepted but not used
+    - country filtering is accepted but not used
+    - date and last_updated fields are not available
+    """
+    try:
+        # Handle single query or multi-query (take first if array)
+        if isinstance(search_request.query, list):
+            if not search_request.query:
+                return {"error": {"message": "Query array cannot be empty"}}
+            query = search_request.query[0]  # Use first query only
+        else:
+            query = search_request.query
+
+        # Apply domain filter if specified
+        if search_request.search_domain_filter:
+            query = apply_domain_filter(query, search_request.search_domain_filter)
+
+        # Perform search
+        search_response = await perform_search(
+            query=query,
+            time_range=None  # Could add time_range support if needed
+        )
+
+        # Transform to Perplexity format
+        results = []
+        for result in search_response.results[:search_request.max_results]:
+            results.append(
+                SearchResultItem(
+                    title=result.title,
+                    url=result.url,
+                    snippet=result.content,
+                    date=None,  # SearXNG doesn't provide this
+                    last_updated=None  # SearXNG doesn't provide this
+                )
+            )
+
+        return SearchResponse(results=results)
+
+    except Exception as e:
+        print(f"Error in search endpoint: {traceback.format_exc()}")
+        return {
+            "error": {
+                "message": str(e),
+                "type": "internal_error",
+                "code": 500
+            }
+        }

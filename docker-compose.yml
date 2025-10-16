@@ -18,6 +18,7 @@ services:
       - LYZR_QUERY_PLANNING_AGENT_ID=${LYZR_QUERY_PLANNING_AGENT_ID:-}
       - LYZR_SEARCH_QUERY_AGENT_ID=${LYZR_SEARCH_QUERY_AGENT_ID:-}
       - AGENT_CONFIG_DIR=/app/config
+      - API_KEYS=${API_KEYS:-}
     volumes:
       - agent_config:/app/config
     depends_on:
