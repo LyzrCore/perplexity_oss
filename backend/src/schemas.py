@@ -29,6 +29,7 @@ class ChatRequest(BaseModel):
     query: str
     history: List[Message] = Field(default_factory=list)
     pro_search: bool = False
+    time_range: str | None = None  # SearXNG time filter: "day", "week", "month", "year"
 
 
 class RelatedQueries(BaseModel):

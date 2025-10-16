@@ -10,13 +10,13 @@ class SearxngSearchProvider(SearchProvider):
     def __init__(self, host: str):
         self.host = host
 
-    async def search(self, query: str) -> SearchResponse:
+    async def search(self, query: str, time_range: str = None) -> SearchResponse:
         async with httpx.AsyncClient(timeout=10.0) as client:
             try:
-                link_results = await self.get_link_results(client, query)
+                link_results = await self.get_link_results(client, query, time_range=time_range)
                 # Skip image results to avoid timeout issues
                 image_results = []
-                    
+
             except Exception as e:
                 print(f"Search failed: {e}")
                 link_results = []
@@ -25,12 +25,20 @@ class SearxngSearchProvider(SearchProvider):
         return SearchResponse(results=link_results, images=image_results)
 
     async def get_link_results(
-        self, client: httpx.AsyncClient, query: str, num_results: int = 6
+        self, client: httpx.AsyncClient, query: str, num_results: int = 6, time_range: str = None
     ) -> list[SearchResult]:
         try:
+            # Build search parameters
+            params = {"q": query, "format": "json"}
+
+            # Add time_range filter if specified
+            # SearXNG supports: "day", "week", "month", "year"
+            if time_range and time_range in ["day", "week", "month", "year"]:
+                params["time_range"] = time_range
+
             response = await client.get(
                 f"{self.host}/search",
-                params={"q": query, "format": "json"},
+                params=params,
             )
             response.raise_for_status()
             results = response.json()

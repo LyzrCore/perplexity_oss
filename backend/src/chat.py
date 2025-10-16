@@ -79,7 +79,7 @@ async def stream_qa_objects(
             request.query, request.history, specialized_agents
         )
 
-        search_response = await perform_search(query)
+        search_response = await perform_search(query, time_range=request.time_range)
 
         search_results = search_response.results
         images = search_response.images

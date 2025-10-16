@@ -64,6 +64,10 @@ def create_app() -> FastAPI:
 
 app = create_app()
 
+# Include OpenAI-compatible API routes
+from api_compat.endpoints import router as compat_router
+app.include_router(compat_router)
+
 
 @app.on_event("startup")
 async def startup_event():

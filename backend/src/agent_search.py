@@ -73,9 +73,10 @@ def format_step_context(step_contexts: list[StepContext]) -> str:
 
 async def ranked_search_results_and_images_from_queries(
     queries: list[str],
+    time_range: str = None,
 ) -> tuple[list[SearchResult], list[str]]:
     search_responses: list[SearchResponse] = await asyncio.gather(
-        *(perform_search(query) for query in queries)
+        *(perform_search(query, time_range=time_range) for query in queries)
     )
     all_search_results = [response.results for response in search_responses]
     all_images = [response.images for response in search_responses]
@@ -170,7 +171,9 @@ async def stream_pro_search_objects(
             (
                 search_results,
                 image_results,
-            ) = await ranked_search_results_and_images_from_queries(search_queries)
+            ) = await ranked_search_results_and_images_from_queries(
+                search_queries, time_range=request.time_range
+            )
             search_result_map[step_id] = search_results
             image_map[step_id] = image_results
 

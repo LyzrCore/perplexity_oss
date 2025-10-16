@@ -29,20 +29,21 @@ def get_search_provider() -> SearxngSearchProvider:
     return SearxngSearchProvider(searxng_base_url)
 
 
-async def perform_search(query: str) -> SearchResponse:
+async def perform_search(query: str, time_range: str = None) -> SearchResponse:
     """
     Perform search using SearXNG provider.
-    
+
     Args:
         query: Search query string
-        
+        time_range: Optional time filter ("day", "week", "month", "year")
+
     Returns:
         SearchResponse object containing search results
     """
     search_provider = get_search_provider()
 
     try:
-        results = await search_provider.search(query)
+        results = await search_provider.search(query, time_range=time_range)
         return results
     except Exception as e:
         print(f"Search error: {str(e)}")
