@@ -7,12 +7,12 @@ import { Skeleton } from "./ui/skeleton";
 import { ChatMessage } from "../generated";
 
 /**
- * Utility function to chunk string into smaller parts for streaming animation
+ * Utility function to split string at sentence boundaries for better streaming
  */
-function chunkString(str: string): string[] {
-  const words = str.split(" ");
-  const chunks = _.chunk(words, 2).map((chunk) => chunk.join(" ") + " ");
-  return chunks;
+function splitAtSentenceBoundaries(str: string): string[] {
+  // Split at sentence endings followed by spaces or newlines
+  const sentences = str.split(/(?<=[.!?])\s+/);
+  return sentences.filter(s => s.trim().length > 0);
 }
 
 export interface MessageProps {
@@ -54,7 +54,14 @@ const Text = ({
 }: TextProps) => {
   const renderText = (node: React.ReactNode): React.ReactNode => {
     if (typeof node === "string") {
-      const chunks = isStreaming ? chunkString(node) : [node];
+      // For markdown content during streaming, don't animate chunks
+      // ReactMarkdown needs complete structures to render properly
+      if (isStreaming && (node.includes('#') || node.includes('-') || node.includes('*') || node.includes('['))) {
+        return node; // Return as-is for markdown parsing
+      }
+
+      // For non-markdown content, animate as before
+      const chunks = splitAtSentenceBoundaries(node);
       return chunks.flatMap((chunk, index) => {
         return (
           <span
