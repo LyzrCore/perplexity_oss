@@ -2,6 +2,7 @@
 
 An open-source, self-hosted AI search engine that combines web search with Amazon Bedrock's Nova language models through specialized Lyzr AI agents. Delivers accurate, citation-backed answers with sophisticated multi-agent orchestration.
 
+
 ## Overview
 
 Perplexity OSS provides intelligent search responses by analyzing web results through Amazon Nova models. The system uses five specialized AI agents, each powered by either Nova Pro (for complex reasoning) or Nova Lite (for efficient query processing), to deliver contextual answers with full source attribution.
@@ -13,6 +14,7 @@ Perplexity OSS provides intelligent search responses by analyzing web results th
 - **Privacy-First**: Self-hosted SearXNG ensures no tracking during web searches
 - **OpenAI-Compatible API**: Drop-in replacement for chat completion endpoints
 - **Auto-Configuration**: Agents automatically created and configured on first startup
+
 
 ## Architecture
 
@@ -85,14 +87,17 @@ On first startup, the system automatically creates agents via Lyzr Agent Studio 
 ### Search Modes
 
 **Simple Mode** (default):
+<img width="1493" height="1033" alt="image" src="https://github.com/user-attachments/assets/7188656e-db37-43e4-9184-2d0a0e40f264" />
 ```
 Query → Rephrase → Web Search → Answer Generation → Related Questions
 ```
+
 - Single SearXNG search retrieves top 6 results
 - Nova Pro streams answer with citations
 - Nova Lite generates follow-up questions (parallel)
 
 **Pro Search Mode**:
+<img width="1260" height="1662" alt="image" src="https://github.com/user-attachments/assets/3ced9af0-0b88-497e-95a5-3dc57504bf0f" />
 ```
 Query → Query Planning → Step Execution Loop → Answer Synthesis
 ```
@@ -104,6 +109,7 @@ Query → Query Planning → Step Execution Loop → Answer Synthesis
 **Context Management:**
 - Simple mode: 7,000 character limit
 - Pro mode: 10,000 character total limit
+
 
 ## Quick Start
 
@@ -156,6 +162,7 @@ docker-compose logs backend | grep "agents initialized"
 
 Expected: `✅ All agents initialized successfully!`
 
+
 ## Environment Configuration
 
 ### Required
@@ -184,6 +191,7 @@ LYZR_RELATED_QUESTIONS_AGENT_ID=agent_id_3
 LYZR_QUERY_PLANNING_AGENT_ID=agent_id_4
 LYZR_SEARCH_QUERY_AGENT_ID=agent_id_5
 ```
+
 
 ## REST API
 
@@ -257,6 +265,7 @@ curl http://localhost:8003/v1/search \
 ```
 
 **See [API.md](API.md) for complete documentation**
+
 
 ## Production Deployment
 
@@ -372,6 +381,7 @@ docker exec backend-1 rm /app/config/agents.json
 docker-compose restart backend
 ```
 
+
 ## Troubleshooting
 
 ### Agent Creation Fails
@@ -411,6 +421,7 @@ Common causes:
 - Network timeout to Lyzr API
 - System automatically falls back to ensure response
 
+
 ## Technical Stack
 
 **Backend:**
@@ -435,6 +446,7 @@ Common causes:
 - Amazon Bedrock (via Lyzr)
 - Bedrock AgentCore primitives
 - AWS credentials managed by Lyzr
+
 
 ## Project Structure
 
