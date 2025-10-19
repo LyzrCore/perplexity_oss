@@ -1,76 +1,179 @@
 # Perplexity OSS
 
-An open-source AI-powered search engine that combines web search with language models to provide accurate answers with source citations. Self-hosted and powered by Lyzr AI agents.
+An open-source, self-hosted AI search engine that combines web search with Amazon Bedrock's Nova language models through specialized Lyzr AI agents. Delivers accurate, citation-backed answers with sophisticated multi-agent orchestration.
 
 ## Overview
 
-Perplexity OSS delivers intelligent search responses by:
-- Searching the web using SearXNG
-- Processing results through specialized AI agents
-- Generating comprehensive answers with citations
-- Supporting conversational follow-ups with context awareness
+Perplexity OSS provides intelligent search responses by analyzing web results through Amazon Nova models. The system uses five specialized AI agents, each powered by either Nova Pro (for complex reasoning) or Nova Lite (for efficient query processing), to deliver contextual answers with full source attribution.
 
 **Key Features:**
-- Real-time streaming responses
-- Source citations for transparency
-- Pro mode with multi-step reasoning for complex queries
-- OpenAI-compatible REST API
-- Complete Docker setup for easy deployment
+- **Amazon Nova Models**: Leverages Bedrock's Nova Pro for answer generation and Nova Lite for query processing
+- **Multi-Agent Architecture**: Five specialized agents work in concert for optimal results
+- **Pro Search Mode**: Multi-step reasoning that breaks complex queries into logical steps
+- **Privacy-First**: Self-hosted SearXNG ensures no tracking during web searches
+- **OpenAI-Compatible API**: Drop-in replacement for chat completion endpoints
+- **Auto-Configuration**: Agents automatically created and configured on first startup
+
+## Architecture
+
+### System Components
+
+Three containerized services orchestrated via Docker Compose:
+
+```
+┌─────────────────┐      ┌──────────────────┐      ┌─────────────────┐
+│   Frontend      │─────▶│    Backend       │─────▶│    SearXNG      │
+│   (Next.js 14)  │      │    (FastAPI)     │      │  (Search Engine)│
+│   Port 3003     │◀─────│   Port 8003      │◀─────│   Port 8083     │
+└─────────────────┘      └──────────────────┘      └─────────────────┘
+```
+
+- **Frontend**: React interface with TypeScript, Tailwind CSS, real-time streaming support
+- **Backend**: FastAPI server orchestrating Lyzr agents powered by Amazon Bedrock Nova models
+- **SearXNG**: Privacy-respecting meta-search engine (no tracking, no data collection)
+
+### Agent System
+
+Five specialized Lyzr AI agents, each configured in `backend/src/llm/agent_config.py`:
+
+**1. Answer Generation Agent**
+- **Model**: `bedrock/amazon.nova-pro-v1:0` (most capable Nova model)
+- **Purpose**: Synthesizes search results into comprehensive, citation-backed answers
+- **Behavior**: Always cites sources in `[[n]](url)` format, maintains journalistic tone
+- **Temperature**: 0.7 for balanced creativity and accuracy
+- **Provider**: AWS Bedrock via Lyzr credential `lyzr_aws-bedrock`
+
+**2. Query Rephrase Agent**
+- **Model**: `bedrock/amazon.nova-lite-v1:0` (cost-effective)
+- **Purpose**: Reformulates queries with conversation context
+- **Behavior**: Creates concise, standalone queries from conversational follow-ups
+- **Used in**: Both simple and pro search modes
+
+**3. Related Questions Agent**
+- **Model**: `bedrock/amazon.nova-lite-v1:0`
+- **Purpose**: Generates three relevant follow-up questions
+- **Behavior**: Creates simple, concise questions matching user's language
+- **Output**: Three numbered questions based on answer and search context
+
+**4. Query Planning Agent** (Pro Mode)
+- **Model**: `bedrock/amazon.nova-lite-v1:0`
+- **Purpose**: Decomposes complex queries into logical search steps
+- **Response Format**: Strict JSON Schema with step IDs and dependencies
+- **Constraints**: Max 4 steps, supports dependency tracking
+- **Example**: "Compare X and Y" → [Research X, Research Y, Compare findings]
+
+**5. Search Query Agent** (Pro Mode)
+- **Model**: `bedrock/amazon.nova-lite-v1:0`
+- **Purpose**: Generates optimized search queries for each planning step
+- **Behavior**: Creates 1-3 targeted queries per step, incorporates previous step context
+- **Response Format**: JSON array of search queries
+
+**Agent Auto-Creation:**
+
+On first startup, the system automatically creates agents via Lyzr Agent Studio API:
+
+1. Checks environment variables for agent IDs
+2. Checks `/app/config/agents.json` (Docker volume)
+3. If not found, creates agents using configurations from `agent_config.py`
+4. Persists IDs to `agents.json` for future runs
+5. File locking prevents duplicate creation
+
+**Implementation**: `backend/src/config/agent_manager.py`
+
+### Search Modes
+
+**Simple Mode** (default):
+```
+Query → Rephrase → Web Search → Answer Generation → Related Questions
+```
+- Single SearXNG search retrieves top 6 results
+- Nova Pro streams answer with citations
+- Nova Lite generates follow-up questions (parallel)
+
+**Pro Search Mode**:
+```
+Query → Query Planning → Step Execution Loop → Answer Synthesis
+```
+1. Nova Lite breaks query into logical steps (max 4)
+2. For each step: Generate search queries → Execute searches → Store results
+3. Final step: Aggregate results → Nova Pro synthesizes comprehensive answer
+4. Fallback: Gracefully falls back to simple mode if planning fails
+
+**Context Management:**
+- Simple mode: 7,000 character limit
+- Pro mode: 10,000 character total limit
 
 ## Quick Start
 
 ### Prerequisites
 
 - Docker and Docker Compose
-- Lyzr Agent Studio API key ([Get one here](https://studio.lyzr.ai))
+- Lyzr Agent Studio API key ([Get one](https://studio.lyzr.ai))
 
 ### Installation
 
-1. **Clone the repository**
+1. **Clone repository**
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/your-username/perplexity_oss.git
    cd perplexity_oss
    ```
 
 2. **Configure environment**
 
-   Create a `.env` file with your Lyzr API key:
+   Create `.env` file:
    ```bash
-   LYZR_API_KEY=your_api_key_here
+   # Required
+   LYZR_API_KEY=your_lyzr_api_key_here
+
+   # Optional
+   API_KEYS=sk-your-custom-key
+   NEXT_PUBLIC_PRO_MODE_ENABLED=true
    ```
 
-3. **Start the application**
+3. **Launch**
    ```bash
    docker-compose up --build
    ```
 
-4. **Access the interface**
+   First startup takes ~2 minutes to build and create agents.
+
+4. **Access**
    - Web UI: http://localhost:3003
-   - Backend API: http://localhost:8003
+   - API: http://localhost:8003
    - API Docs: http://localhost:8003/docs
 
-**First Run:** The application automatically creates required AI agents on startup. Agent configurations are saved and reused on subsequent runs.
+### Verification
+
+```bash
+# Check services
+docker-compose ps
+
+# View agent initialization
+docker-compose logs backend | grep "agents initialized"
+```
+
+Expected: `✅ All agents initialized successfully!`
 
 ## Environment Configuration
 
-### Required Variables
+### Required
 
 | Variable | Description |
 |----------|-------------|
-| `LYZR_API_KEY` | Your Lyzr Agent Studio API key |
+| `LYZR_API_KEY` | Lyzr Agent Studio API key (provides Bedrock access) |
 
-### Optional Variables
+### Optional
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `API_KEYS` | - | Comma-separated API keys for REST endpoints |
-| `NEXT_PUBLIC_PRO_MODE_ENABLED` | `true` | Enable advanced pro search mode |
+| `NEXT_PUBLIC_PRO_MODE_ENABLED` | `true` | Enable multi-step search mode |
 | `NEXT_PUBLIC_API_URL` | `http://localhost:8000` | Backend URL for frontend |
 | `LYZR_API_BASE` | `https://agent-prod.studio.lyzr.ai` | Lyzr API endpoint |
 
-### Advanced: Manual Agent Configuration
+### Manual Agent Configuration (Advanced)
 
-By default, agents are created automatically. To use manually created agents, add these to your `.env`:
+To use pre-created agents from Lyzr Studio:
 
 ```bash
 LYZR_QUERY_REPHRASE_AGENT_ID=agent_id_1
@@ -80,48 +183,65 @@ LYZR_QUERY_PLANNING_AGENT_ID=agent_id_4
 LYZR_SEARCH_QUERY_AGENT_ID=agent_id_5
 ```
 
-See `.env.example` for all available options.
+## REST API
 
-## Using the REST API
-
-Perplexity OSS provides OpenAI-compatible endpoints for programmatic access.
+OpenAI-compatible endpoints for programmatic access.
 
 ### Authentication
 
-Set API keys in your `.env` file:
+Set in `.env`:
 ```bash
-API_KEYS=sk-your-key-1,sk-your-key-2
+API_KEYS=sk-your-secret-key
+```
+
+Include in requests:
+```bash
+Authorization: Bearer sk-your-secret-key
 ```
 
 ### Chat Completions
 
+`POST /v1/chat/completions`
+
+**Basic:**
 ```bash
 curl http://localhost:8003/v1/chat/completions \
   -H "Authorization: Bearer sk-your-key" \
   -H "Content-Type: application/json" \
   -d '{
     "model": "default",
-    "messages": [
-      {"role": "user", "content": "What is quantum computing?"}
-    ],
-    "stream": false,
-    "search_domain_filter": ["arxiv.org"],
+    "messages": [{"role": "user", "content": "Explain quantum computing"}]
+  }'
+```
+
+**Advanced:**
+```bash
+curl http://localhost:8003/v1/chat/completions \
+  -H "Authorization: Bearer sk-your-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "default",
+    "messages": [{"role": "user", "content": "Latest AI developments"}],
+    "stream": true,
+    "pro_search": true,
     "search_recency_filter": "week",
+    "search_domain_filter": ["arxiv.org"],
     "return_related_questions": true
   }'
 ```
 
 **Parameters:**
-- `stream` (boolean): Enable streaming responses
-- `search_domain_filter` (array): Limit search to specific domains
-- `search_recency_filter` (string): Filter by time - "day", "week", "month", "year"
-- `pro_search` (boolean): Enable multi-step reasoning
-- `return_related_questions` (boolean): Include follow-up questions
-- `return_images` (boolean): Include image results
+- `stream`: Enable SSE streaming
+- `pro_search`: Use multi-step query planning
+- `search_recency_filter`: `"day"`, `"week"`, `"month"`, `"year"`
+- `search_domain_filter`: Array of domains to search
+- `return_related_questions`: Include follow-up questions
+- `return_images`: Include image URLs
+- `max_results`: Number of results (1-20, default: 6)
 
-### Search Only
+### Search-Only Endpoint
 
-For search results without AI-generated answers:
+`POST /v1/search`
 
 ```bash
 curl http://localhost:8003/v1/search \
@@ -134,57 +254,24 @@ curl http://localhost:8003/v1/search \
   }'
 ```
 
-**Full API documentation:** See [API.md](API.md) for complete endpoint reference and examples.
-
-## Architecture
-
-### Components
-
-**Frontend (Next.js 14)**
-- Modern React interface with TypeScript
-- Real-time streaming support
-- Responsive design with Tailwind CSS
-
-**Backend (FastAPI)**
-- RESTful API with OpenAI compatibility
-- Lyzr AI agent orchestration
-- Streaming response handling
-
-**Search (SearXNG)**
-- Privacy-focused web search
-- No tracking or data collection
-- Configurable search sources
-
-### Agent System
-
-The application uses specialized Lyzr agents for different tasks:
-
-- **Query Rephrase:** Reformulates queries using conversation context
-- **Answer Generation:** Creates comprehensive answers from search results
-- **Related Questions:** Generates relevant follow-up questions
-- **Query Planning:** Breaks complex queries into logical steps (Pro mode)
-- **Search Query:** Optimizes search queries for better results (Pro mode)
+**See [API.md](API.md) for complete documentation**
 
 ## Production Deployment
 
-### Using Custom Ports
+### Custom Ports
 
-Edit `docker-compose.yml` to change default ports:
-
+Edit `docker-compose.yml`:
 ```yaml
 services:
   backend:
     ports:
-      - "8080:8000"  # Custom backend port
-
+      - "8080:8000"
   frontend:
     ports:
-      - "3000:3000"  # Custom frontend port
+      - "80:3000"
 ```
 
 ### Resource Limits
-
-Add resource constraints for production:
 
 ```yaml
 services:
@@ -198,64 +285,49 @@ services:
 
 ### HTTPS Setup
 
-Use a reverse proxy (nginx, Caddy, or Traefik) for HTTPS:
+nginx reverse proxy example:
 
 ```nginx
 server {
-    listen 443 ssl;
+    listen 443 ssl http2;
     server_name your-domain.com;
+
+    ssl_certificate /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
 
     location / {
         proxy_pass http://localhost:3003;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
     }
 
     location /api {
         proxy_pass http://localhost:8003;
+        proxy_buffering off;  # Important for SSE
     }
 }
 ```
 
-## Troubleshooting
+### Persistent Configuration
 
-### Agent Creation Fails
-
-**Problem:** "Could not initialize agents" error on startup
-
-**Solutions:**
-1. Verify your `LYZR_API_KEY` is correct
-2. Check internet connectivity
-3. Ensure Lyzr API endpoint is accessible
-4. Try manual agent creation in Lyzr Studio
-
-### Search Not Working
-
-**Problem:** No search results returned
-
-**Solutions:**
-1. Check SearXNG is running: `docker-compose ps`
-2. Test SearXNG directly: http://localhost:8083
-3. Restart SearXNG: `docker-compose restart searxng`
-
-### API Endpoint Returns 503
-
-**Problem:** "API keys not configured on server"
-
-**Solutions:**
-1. Verify `API_KEYS` is set in `.env`
-2. Restart containers: `docker-compose restart`
-3. Check environment passed correctly: `docker-compose config`
-
-### Pro Search Fails
-
-Pro search automatically falls back to regular search if query planning fails. Check logs for warnings:
+Agent IDs persist via Docker volume:
 
 ```bash
-docker-compose logs backend | grep "Pro search failed"
+# View saved agent IDs
+docker exec backend-1 cat /app/config/agents.json
+
+# Backup
+docker cp backend-1:/app/config/agents.json ./backup.json
+
+# Reset and recreate
+docker-compose down -v
+docker-compose up --build
 ```
 
 ## Development
 
-### Backend Development
+### Backend
 
 ```bash
 cd backend
@@ -266,44 +338,140 @@ cd src
 uvicorn main:app --reload --port 8000
 ```
 
-### Frontend Development
+Environment:
+```bash
+export LYZR_API_KEY=your_key
+export SEARXNG_BASE_URL=http://localhost:8080
+```
+
+### Frontend
 
 ```bash
 cd frontend
 npm install
-npm run dev
+npm run dev  # http://localhost:3000
 ```
 
-### Running Tests
+### Modifying Agents
 
+Edit `backend/src/llm/agent_config.py`:
+
+```python
+ANSWER_GENERATION_AGENT = {
+    "model": "bedrock/amazon.nova-pro-v1:0",
+    "temperature": "0.7",  # Adjust
+    "agent_instructions": "...",  # Modify
+}
+```
+
+Recreate agents:
 ```bash
-# Backend tests
-cd backend
-pytest
-
-# Frontend tests
-cd frontend
-npm test
+docker exec backend-1 rm /app/config/agents.json
+docker-compose restart backend
 ```
 
-## Tech Stack
+## Troubleshooting
 
-- **Backend:** FastAPI, Python 3.11, Pydantic, httpx
-- **Frontend:** Next.js 14, React, TypeScript, Tailwind CSS
-- **Search:** SearXNG
-- **AI:** Lyzr Agent Studio
-- **Infrastructure:** Docker, Docker Compose
+### Agent Creation Fails
+
+**Error**: "Could not initialize agents"
+
+**Solutions**:
+- Verify `LYZR_API_KEY` is correct
+- Check Bedrock access in Lyzr Studio
+- Review logs: `docker-compose logs backend | grep agent`
+
+### Search Not Working
+
+**Solutions**:
+- Check SearXNG: `curl http://localhost:8083`
+- Restart: `docker-compose restart searxng`
+- View logs: `docker-compose logs searxng`
+
+### API Returns 503
+
+**Error**: "API keys not configured"
+
+**Solutions**:
+- Add `API_KEYS` to `.env`
+- Restart: `docker-compose restart backend`
+- Verify: `docker-compose config | grep API_KEYS`
+
+### Pro Search Fallback
+
+Check why pro search fell back to simple mode:
+```bash
+docker-compose logs backend | grep "Pro search failed"
+```
+
+Common causes:
+- Query Planning Agent JSON parsing failure
+- Network timeout to Lyzr API
+- System automatically falls back to ensure response
+
+## Technical Stack
+
+**Backend:**
+- FastAPI (Python 3.11)
+- Amazon Bedrock (Nova Pro v1.0, Nova Lite v1.0)
+- Lyzr Agent Studio
+- Pydantic v2, httpx (async)
+- Package manager: uv
+
+**Frontend:**
+- Next.js 14 (App Router)
+- TypeScript, Tailwind CSS v4
+- shadcn/ui components
+- Zustand state management
+
+**Infrastructure:**
+- SearXNG (privacy-focused search)
+- Docker & Docker Compose
+- Server-Sent Events (SSE streaming)
+
+**AWS Services:**
+- Amazon Bedrock (via Lyzr)
+- Bedrock AgentCore primitives
+- AWS credentials managed by Lyzr
+
+## Project Structure
+
+```
+perplexity_oss/
+├── backend/
+│   ├── src/
+│   │   ├── main.py                 # FastAPI entry point
+│   │   ├── chat.py                 # Simple search mode
+│   │   ├── agent_search.py         # Pro search mode
+│   │   ├── llm/
+│   │   │   ├── lyzr_agent.py       # Agent client & streaming
+│   │   │   └── agent_config.py     # Nova model configs
+│   │   ├── config/
+│   │   │   └── agent_manager.py    # Auto-creation logic
+│   │   ├── search/
+│   │   │   ├── search_service.py   # Search orchestration
+│   │   │   └── providers/searxng.py
+│   │   ├── api_compat/             # OpenAI compatibility
+│   │   ├── schemas.py              # Data models
+│   │   └── prompts.py              # Agent prompts
+│   └── requirements.txt
+├── frontend/
+│   ├── src/
+│   │   ├── app/                    # Next.js routes
+│   │   ├── components/             # React components
+│   │   ├── contexts/AuthContext.tsx
+│   │   └── hooks/chat.ts
+│   └── package.json
+├── docker-compose.yml
+└── .env.example
+```
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+MIT License - see [LICENSE](LICENSE)
 
-## Support
+## Documentation
 
-- **Issues:** [GitHub Issues](https://github.com/your-repo/issues)
-- **Lyzr Support:** [studio.lyzr.ai](https://studio.lyzr.ai)
-- **Documentation:** See [API.md](API.md) and [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)
-
----
-
-Built with Lyzr AI Agents
+- **API Reference**: [API.md](API.md)
+- **Issues**: [GitHub Issues](https://github.com/LyzrCore/perplexity_oss/issues)
+- **Lyzr Support**: [studio.lyzr.ai](https://studio.lyzr.ai)

@@ -1,5 +1,14 @@
+# Environment variables
 .env
 **/.env
+
+# Dependencies
 node_modules/
 venv/
 __pycache__/
+
+# AI Tools
+.archive/
+.claude/
+.cursor/
+CLAUDE.md
