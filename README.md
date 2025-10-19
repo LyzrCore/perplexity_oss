@@ -20,13 +20,15 @@ Perplexity OSS provides intelligent search responses by analyzing web results th
 
 Three containerized services orchestrated via Docker Compose:
 
-```
+<!-- ```
 ┌─────────────────┐      ┌──────────────────┐      ┌─────────────────┐
 │   Frontend      │─────▶│    Backend       │─────▶│    SearXNG      │
 │   (Next.js 14)  │      │    (FastAPI)     │      │  (Search Engine)│
 │   Port 3003     │◀─────│   Port 8003      │◀─────│   Port 8083     │
 └─────────────────┘      └──────────────────┘      └─────────────────┘
-```
+``` -->
+<img width="512" alt="image" src="https://github.com/user-attachments/assets/c487186b-499b-4a01-91d2-3ee80529e3c6" />
+
 
 - **Frontend**: React interface with TypeScript, Tailwind CSS, real-time streaming support
 - **Backend**: FastAPI server orchestrating Lyzr agents powered by Amazon Bedrock Nova models
