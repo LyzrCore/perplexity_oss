@@ -20,8 +20,9 @@ COPY --from=deps /app/lyzr-agent-local ./lyzr-agent-local
 COPY . .
 
 # Build arguments for environment variables
-ARG NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
-ARG NEXT_PUBLIC_PRO_MODE_ENABLED=${NEXT_PUBLIC_PRO_MODE_ENABLED}
+# Default to /api if not provided, will be overridden at runtime
+ARG NEXT_PUBLIC_API_URL=/api
+ARG NEXT_PUBLIC_PRO_MODE_ENABLED=true
 
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 ENV NEXT_PUBLIC_PRO_MODE_ENABLED=${NEXT_PUBLIC_PRO_MODE_ENABLED}

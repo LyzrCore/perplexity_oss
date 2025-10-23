@@ -25,6 +25,13 @@ RUN npm install
 # Copy source code
 COPY . .
 
+# Set build-time environment variables with defaults
+ARG NEXT_PUBLIC_API_URL=/api
+ARG NEXT_PUBLIC_PRO_MODE_ENABLED=true
+
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ENV NEXT_PUBLIC_PRO_MODE_ENABLED=${NEXT_PUBLIC_PRO_MODE_ENABLED}
+
 # Build the Next.js application
 RUN npm run build
 
