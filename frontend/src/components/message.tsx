@@ -1,19 +1,11 @@
-import React, { FC, memo, useEffect, useMemo, useState } from "react";
-import { MemoizedReactMarkdown } from "./markdown";
+import React, { FC, useEffect, useState } from "react";
+import { Streamdown } from "streamdown";
 import rehypeRaw from "rehype-raw";
-import _ from "lodash";
-import { cn } from "@/lib/utils";
 import { Skeleton } from "./ui/skeleton";
 import { ChatMessage } from "../generated";
 
-/**
- * Utility function to split string at sentence boundaries for better streaming
- */
-function splitAtSentenceBoundaries(str: string): string[] {
-  // Split at sentence endings followed by spaces or newlines
-  const sentences = str.split(/(?<=[.!?])\s+/);
-  return sentences.filter(s => s.trim().length > 0);
-}
+// Note: Streamdown handles streaming and incomplete markdown parsing internally,
+// so we no longer need custom sentence splitting or streaming components
 
 export interface MessageProps {
   /** The chat message to display */
@@ -38,101 +30,7 @@ const CitationText = ({ number, href }: { number: number; href: string }) => {
     </button>`;
 };
 
-interface TextProps {
-  children: React.ReactNode;
-  isStreaming: boolean;
-  containerElement?: React.ElementType;
-}
-
-/**
- * Text component with streaming animation support
- */
-const Text = ({
-  children,
-  isStreaming,
-  containerElement = "p",
-}: TextProps) => {
-  const renderText = (node: React.ReactNode): React.ReactNode => {
-    if (typeof node === "string") {
-      // For markdown content during streaming, don't animate chunks
-      // ReactMarkdown needs complete structures to render properly
-      if (isStreaming && (node.includes('#') || node.includes('-') || node.includes('*') || node.includes('['))) {
-        return node; // Return as-is for markdown parsing
-      }
-
-      // For non-markdown content, animate as before
-      const chunks = splitAtSentenceBoundaries(node);
-      return chunks.flatMap((chunk, index) => {
-        return (
-          <span
-            key={`${index}-streaming`}
-            className={cn(
-              isStreaming ? "animate-in fade-in-25 duration-700" : "",
-            )}
-          >
-            {chunk}
-          </span>
-        );
-      });
-    } else if (React.isValidElement(node)) {
-      return React.cloneElement(
-        node,
-        node.props,
-        renderText(node.props.children),
-      );
-    } else if (Array.isArray(node)) {
-      return node.map((child, index) => (
-        <React.Fragment key={index}>{renderText(child)}</React.Fragment>
-      ));
-    }
-    return null;
-  };
-
-  const text = renderText(children);
-  return React.createElement(containerElement, {}, text);
-};
-
-const StreamingParagraph = memo(
-  ({ children }: React.HTMLProps<HTMLParagraphElement>) => {
-    return (
-      <Text isStreaming={true} containerElement="p">
-        {children}
-      </Text>
-    );
-  },
-);
-const Paragraph = memo(
-  ({ children }: React.HTMLProps<HTMLParagraphElement>) => {
-    return (
-      <Text isStreaming={false} containerElement="p">
-        {children}
-      </Text>
-    );
-  },
-);
-
-const ListItem = memo(({ children }: React.HTMLProps<HTMLLIElement>) => {
-  return (
-    <Text isStreaming={false} containerElement="li">
-      {children}
-    </Text>
-  );
-});
-
-const StreamingListItem = memo(
-  ({ children }: React.HTMLProps<HTMLLIElement>) => {
-    return (
-      <Text isStreaming={true} containerElement="li">
-        {children}
-      </Text>
-    );
-  },
-);
-
-StreamingParagraph.displayName = "StreamingParagraph";
-Paragraph.displayName = "Paragraph";
-ListItem.displayName = "ListItem";
-StreamingListItem.displayName = "StreamingListItem";
+// Streamdown handles streaming internally, so we don't need custom streaming components
 
 export const MessageComponent: FC<MessageProps> = ({
   message,
@@ -158,19 +56,21 @@ export const MessageComponent: FC<MessageProps> = ({
   }, [content, sources]);
 
   return (
-    <MemoizedReactMarkdown
-      components={{
-        // TODO: For some reason, can't pass props into the components
-        // @ts-ignore
-        p: isStreaming ? StreamingParagraph : Paragraph,
-        // @ts-ignore
-        li: isStreaming ? StreamingListItem : ListItem,
-      }}
+    <Streamdown
+      // Enable parsing of incomplete markdown during streaming
+      // This ensures markdown is rendered correctly even when tokens arrive incrementally
+      parseIncompleteMarkdown={isStreaming}
+      // Enable animations during streaming for smooth visual feedback
+      isAnimating={isStreaming}
+      // Preserve prose styling for consistency with existing design
+      // The .prose classes from globals.css will style headings, lists, paragraphs, etc.
       className="prose dark:prose-invert max-w-none leading-relaxed break-words"
+      // Note: Streamdown includes rehype-raw by default, but we explicitly pass it
+      // to ensure citation HTML injection works reliably
       rehypePlugins={[rehypeRaw]}
     >
       {parsedMessage}
-    </MemoizedReactMarkdown>
+    </Streamdown>
   );
 };
 
