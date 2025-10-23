@@ -352,5 +352,7 @@ async def stream_pro_search_qa(
                 await asyncio.sleep(0)
 
     except Exception as e:
-        detail = str(e)
+        # Ensure we have a meaningful error message
+        detail = str(e).strip() if str(e).strip() else f"Pro search processing error: {type(e).__name__}"
+        print(f"Error in stream_pro_search_qa: {detail}")
         raise HTTPException(status_code=500, detail=detail)

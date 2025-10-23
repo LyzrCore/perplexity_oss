@@ -127,7 +127,11 @@ async def chat(
                 
         except Exception as e:
             print(f"Error in chat endpoint: {traceback.format_exc()}")
-            yield create_error_event(str(e))
+            # Ensure we always have a meaningful error message
+            error_detail = str(e).strip() if str(e).strip() else "An unexpected error occurred during chat processing"
+            error_type = type(e).__name__
+            full_detail = f"{error_type}: {error_detail}" if error_detail != "An unexpected error occurred during chat processing" else error_detail
+            yield create_error_event(full_detail)
             await asyncio.sleep(0)
             return
 

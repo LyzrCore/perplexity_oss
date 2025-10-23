@@ -148,5 +148,7 @@ async def stream_qa_objects(
         )
 
     except Exception as e:
-        detail = str(e)
+        # Ensure we have a meaningful error message
+        detail = str(e).strip() if str(e).strip() else f"Chat processing error: {type(e).__name__}"
+        print(f"Error in stream_qa_objects: {detail}")
         raise HTTPException(status_code=500, detail=detail)

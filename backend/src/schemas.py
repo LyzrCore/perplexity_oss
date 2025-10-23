@@ -77,6 +77,7 @@ class StreamEvent(str, Enum):
     STREAM_END = "stream-end"
     FINAL_RESPONSE = "final-response"
     ERROR = "error"
+    RETRY_ATTEMPT = "retry-attempt"  # New: indicates a retry is being attempted
 
     # Agent Events
     AGENT_QUERY_PLAN = "agent-query-plan"
@@ -152,6 +153,15 @@ class AgentFinishStream(ChatObject):
     event_type: StreamEvent = StreamEvent.AGENT_FINISH
 
 
+class RetryAttemptStream(ChatObject):
+    """Event emitted when a retry attempt is being made"""
+    event_type: StreamEvent = StreamEvent.RETRY_ATTEMPT
+    attempt: int  # Current attempt number
+    max_attempts: int  # Maximum number of attempts
+    reason: str  # Reason for retry (e.g., "Connection error", "Timeout")
+    delay_seconds: float  # Delay before next attempt
+
+
 class ChatResponseEvent(BaseModel):
     event: StreamEvent
     data: Union[
@@ -162,6 +172,7 @@ class ChatResponseEvent(BaseModel):
         StreamEndStream,
         FinalResponseStream,
         ErrorStream,
+        RetryAttemptStream,
         AgentQueryPlanStream,
         AgentSearchQueriesStream,
         AgentReadResultsStream,
