@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { AskInput } from "./ask-input";
 import { useChatThread } from "@/hooks/threads";
 import { StarterQuestionsList } from "./starter-questions";
-import { useAutoScroll } from "@/hooks/use-auto-scroll";
+// import { useAutoScroll } from "@/hooks/use-auto-scroll"; // Disabled - was causing scroll to top
 import { useAutoResize } from "@/hooks/use-auto-resize";
 import { useAutoFocus } from "@/hooks/use-auto-focus";
 import { ChatEmptyState } from "./chat/empty-state";
@@ -29,10 +29,9 @@ export const ChatPanel = ({ threadId }: { threadId?: number }) => {
 
   const [width, setWidth] = useState(0);
   const messagesRef = useRef<HTMLDivElement | null>(null);
-  const messageBottomRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  useAutoScroll(messageBottomRef);
+  // useAutoScroll(messageBottomRef, isStreamingMessage); // Disabled - was causing scroll to top
   useAutoResize(messagesRef, setWidth);
   useAutoFocus(inputRef);
 
@@ -71,7 +70,6 @@ export const ChatPanel = ({ threadId }: { threadId?: number }) => {
             onSend={handleSend}
             onRelatedQuestionSelect={handleSend}
           />
-          <div ref={messageBottomRef} className="h-0" />
         </>
       ) : (
         <ChatEmptyState>
