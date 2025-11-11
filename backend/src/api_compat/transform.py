@@ -90,7 +90,8 @@ def openai_to_internal(
         query=query,
         history=history,
         pro_search=request.pro_search,
-        time_range=request.search_recency_filter
+        time_range=request.search_recency_filter,
+        max_results=request.max_results
     )
 
 

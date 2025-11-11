@@ -7,7 +7,7 @@ from fastapi import HTTPException
 
 from auth import AuthenticatedUser
 from llm.lyzr_agent import LyzrSpecializedAgents
-from prompts import CHAT_PROMPT, HISTORY_QUERY_REPHRASE
+from prompts import CHAT_PROMPT, HISTORY_QUERY_REPHRASE, SEARCH_TERM_EXTRACTION_PROMPT
 from related_queries import generate_related_queries
 from schemas import (
     BeginStream,
@@ -23,6 +23,22 @@ from schemas import (
     TextChunkStream,
 )
 from search.search_service import perform_search
+
+
+def extract_search_terms(query: str, specialized_agents: LyzrSpecializedAgents) -> str:
+    """
+    Extract the core search terms from a query using an agent.
+    The agent understands what information to search for while ignoring output format instructions.
+    """
+    try:
+        agent = specialized_agents.get_query_rephrase_agent()  # Reuse this agent for extraction
+        formatted_prompt = SEARCH_TERM_EXTRACTION_PROMPT.format(query=query)
+        print(f"Using agent to extract search terms from query")
+        search_terms = agent.complete(formatted_prompt).text.strip().replace('"', '')
+        return search_terms if search_terms else query
+    except Exception as e:
+        print(f"Error in search term extraction, using original query: {e}")
+        return query
 
 
 def rephrase_query_with_history(
@@ -75,11 +91,23 @@ async def stream_qa_objects(
             data=BeginStream(query=request.query),
         )
 
+        # Rephrase with history if needed (full query context preserved)
         query = rephrase_query_with_history(
             request.query, request.history, specialized_agents
         )
+        
+        # Extract search terms from the full query using an agent
+        search_query = extract_search_terms(query, specialized_agents)
+        
+        print(f"Original query: {request.query}")
+        print(f"Rephrased query: {query}")
+        print(f"Search terms extracted: {search_query}")
 
-        search_response = await perform_search(query, time_range=request.time_range)
+        search_response = await perform_search(
+            search_query,  # Use extracted search terms for SearXNG
+            time_range=request.time_range,
+            num_results=request.max_results
+        )
 
         search_results = search_response.results
         images = search_response.images

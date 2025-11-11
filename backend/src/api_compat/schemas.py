@@ -57,10 +57,10 @@ class ChatCompletionRequest(BaseModel):
         description="Enable multi-step reasoning (Perplexity OSS extension)"
     )
     max_results: int = Field(
-        default=6,
+        default=10,
         ge=1,
-        le=20,
-        description="Number of search results to use (Perplexity OSS extension)"
+        le=100,  # Increased from 20 to 100
+        description="Number of search results to use per query (Perplexity OSS extension)"
     )
 
 
@@ -150,13 +150,17 @@ class SearchRequest(BaseModel):
     max_results: int = Field(
         default=10,
         ge=1,
-        le=20,
+        le=100,  # Increased from 20 to 100
         description="Maximum number of search results to return"
     )
     search_domain_filter: Optional[List[str]] = Field(
         default=None,
         max_items=20,
         description="Limit search to specific domains"
+    )
+    search_recency_filter: Optional[Literal["day", "week", "month", "year"]] = Field(
+        default=None,
+        description="Filter by time range"
     )
     max_tokens_per_page: Optional[int] = Field(
         default=1024,
@@ -175,11 +179,11 @@ class SearchResultItem(BaseModel):
     snippet: str = Field(..., description="Brief excerpt or summary")
     date: Optional[str] = Field(
         default=None,
-        description="Date crawled (not available from SearXNG)"
+        description="Date published (extracted from SearXNG when available)"
     )
     last_updated: Optional[str] = Field(
         default=None,
-        description="Date last updated (not available from SearXNG)"
+        description="Date last updated (same as date for SearXNG results)"
     )
 
 

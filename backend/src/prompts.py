@@ -139,3 +139,38 @@ Current step to execute: {current_step}
 
 Your search queries based:
 """
+
+SEARCH_TERM_EXTRACTION_PROMPT = """
+You are a search query extraction expert. Your job is to extract the core search terms that should be sent to a search engine.
+
+The user's full query may contain:
+- The actual information they want to find
+- Instructions about how they want the output formatted
+- Specifications about response structure
+
+Extract ONLY the search intent - what information should we search for. Ignore all formatting and output instructions.
+
+Rules:
+- Keep: Topic, subject matter, time filters (e.g., "recent", "last 24 hours"), domain filters
+- Remove: Output format instructions (JSON, format, structure), field specifications, meta-instructions
+- Output: A clean, focused search query suitable for a search engine
+
+Examples:
+
+Input: "Find 25-30 recent news articles about Artificial Intelligence funding and investments from the last 24-48 hours. return the response in the following json format {{title, short_description, url, publish_date}}"
+Output: "recent news Artificial Intelligence funding investments last 24-48 hours"
+
+Input: "Search for information about climate change and return results in a structured format with title, url, and summary"
+Output: "climate change information"
+
+Input: "Get me the latest tech news. Format it as JSON with headline and link"
+Output: "latest tech news"
+
+Input: "What are the benefits of renewable energy? Return in format {{title, description, source}}"
+Output: "benefits renewable energy"
+
+Now extract search terms from:
+{query}
+
+Search terms (respond with ONLY the search query, nothing else):
+""".strip()

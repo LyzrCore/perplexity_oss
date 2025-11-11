@@ -242,13 +242,13 @@ async def search(
     """
     Perplexity-compatible search endpoint.
 
-    Returns ranked search results with optional domain filtering.
+    Returns ranked search results with optional domain and recency filtering.
 
     Note: Due to SearXNG limitations:
     - Multi-query search (array of queries) executes only the first query
     - max_tokens_per_page is accepted but not used
     - country filtering is accepted but not used
-    - date and last_updated fields are not available
+    - date/last_updated fields depend on SearXNG data availability
     """
     try:
         # Handle single query or multi-query (take first if array)
@@ -266,19 +266,20 @@ async def search(
         # Perform search
         search_response = await perform_search(
             query=query,
-            time_range=None  # Could add time_range support if needed
+            time_range=search_request.search_recency_filter,  # Pass through time_range
+            num_results=search_request.max_results
         )
 
         # Transform to Perplexity format
         results = []
-        for result in search_response.results[:search_request.max_results]:
+        for result in search_response.results:
             results.append(
                 SearchResultItem(
                     title=result.title,
                     url=result.url,
                     snippet=result.content,
-                    date=None,  # SearXNG doesn't provide this
-                    last_updated=None  # SearXNG doesn't provide this
+                    date=result.published_date,  # Now extracted from SearXNG
+                    last_updated=result.published_date  # Use same date for both
                 )
             )
 

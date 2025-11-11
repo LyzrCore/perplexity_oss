@@ -10,10 +10,10 @@ class SearxngSearchProvider(SearchProvider):
     def __init__(self, host: str):
         self.host = host
 
-    async def search(self, query: str, time_range: str = None) -> SearchResponse:
+    async def search(self, query: str, time_range: str = None, num_results: int = 10) -> SearchResponse:
         async with httpx.AsyncClient(timeout=10.0) as client:
             try:
-                link_results = await self.get_link_results(client, query, time_range=time_range)
+                link_results = await self.get_link_results(client, query, num_results=num_results, time_range=time_range)
                 # Skip image results to avoid timeout issues
                 image_results = []
 
@@ -25,7 +25,7 @@ class SearxngSearchProvider(SearchProvider):
         return SearchResponse(results=link_results, images=image_results)
 
     async def get_link_results(
-        self, client: httpx.AsyncClient, query: str, num_results: int = 6, time_range: str = None
+        self, client: httpx.AsyncClient, query: str, num_results: int = 10, time_range: str = None
     ) -> list[SearchResult]:
         try:
             # Build search parameters
@@ -48,6 +48,7 @@ class SearxngSearchProvider(SearchProvider):
                     title=result.get("title", ""),
                     url=result.get("url", ""),
                     content=result.get("content", ""),
+                    published_date=result.get("publishedDate") or result.get("pubdate"),  # Extract date if available
                 )
                 for result in results.get("results", [])[:num_results]
                 if result.get("url")  # Only include results with URLs

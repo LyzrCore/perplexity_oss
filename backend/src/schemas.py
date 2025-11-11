@@ -30,6 +30,7 @@ class ChatRequest(BaseModel):
     history: List[Message] = Field(default_factory=list)
     pro_search: bool = False
     time_range: str | None = None  # SearXNG time filter: "day", "week", "month", "year"
+    max_results: int = Field(default=10, ge=1, le=100)  # Number of results per query
 
 
 class RelatedQueries(BaseModel):
@@ -40,6 +41,7 @@ class SearchResult(BaseModel):
     title: str
     url: str
     content: str
+    published_date: str | None = None  # Optional: backwards compatible
 
     def __str__(self):
         return f"Title: {self.title}\nURL: {self.url}\n Summary: {self.content}"

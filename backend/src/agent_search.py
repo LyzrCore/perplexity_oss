@@ -7,7 +7,7 @@ from fastapi import HTTPException
 from pydantic import BaseModel, Field
 
 from auth import AuthenticatedUser
-from chat import rephrase_query_with_history
+from chat import rephrase_query_with_history, extract_search_terms
 from llm.lyzr_agent import LyzrSpecializedAgents
 from prompts import CHAT_PROMPT, QUERY_PLAN_PROMPT, SEARCH_QUERY_PROMPT
 from related_queries import generate_related_queries
@@ -74,9 +74,10 @@ def format_step_context(step_contexts: list[StepContext]) -> str:
 async def ranked_search_results_and_images_from_queries(
     queries: list[str],
     time_range: str = None,
+    num_results: int = 10,
 ) -> tuple[list[SearchResult], list[str]]:
     search_responses: list[SearchResponse] = await asyncio.gather(
-        *(perform_search(query, time_range=time_range) for query in queries)
+        *(perform_search(query, time_range=time_range, num_results=num_results) for query in queries)
     )
     all_search_results = [response.results for response in search_responses]
     all_images = [response.images for response in search_responses]
@@ -172,7 +173,9 @@ async def stream_pro_search_objects(
                 search_results,
                 image_results,
             ) = await ranked_search_results_and_images_from_queries(
-                search_queries, time_range=request.time_range
+                search_queries, 
+                time_range=request.time_range,
+                num_results=request.max_results
             )
             search_result_map[step_id] = search_results
             image_map[step_id] = image_results
@@ -325,9 +328,13 @@ async def stream_pro_search_qa(
             api_base=None  # Use default
         )
 
+        # Rephrase with history if needed (full query context preserved for agent)
         query = rephrase_query_with_history(
             request.query, request.history, specialized_agents
         )
+        
+        print(f"[Pro Search] Original query: {request.query}")
+        print(f"[Pro Search] Rephrased query (passed to agents): {query}")
 
         # Try pro search, fallback to regular search if it fails
         try:
