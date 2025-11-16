@@ -19,6 +19,13 @@ services:
       - LYZR_SEARCH_QUERY_AGENT_ID=${LYZR_SEARCH_QUERY_AGENT_ID:-}
       - AGENT_CONFIG_DIR=/app/config
       - API_KEYS=${API_KEYS:-}
+      - AGENT_PROVIDER=${AGENT_PROVIDER:-OpenAI}
+      - AGENT_LLM_CREDENTIAL=${AGENT_LLM_CREDENTIAL:-lyzr_openai}
+      - AGENT_MODEL_ANSWER=${AGENT_MODEL_ANSWER:-gpt-4o}
+      - AGENT_MODEL_PLANNING=${AGENT_MODEL_PLANNING:-gpt-4o-mini}
+      - AGENT_TEMPERATURE=${AGENT_TEMPERATURE:-0.7}
+      - AGENT_TOP_P=${AGENT_TOP_P:-0.9}
+      - AGENT_VERSION=${AGENT_VERSION:-1.2.13}
     volumes:
       - agent_config:/app/config
     depends_on:

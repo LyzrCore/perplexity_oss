@@ -119,18 +119,42 @@ class AgentConfigManager:
             print(f"⚠ Error reading version from config: {e}")
             return None
 
-    def needs_update(self) -> bool:
-        """Check if agents need to be updated based on version."""
+    def needs_update(self, agents_exist: bool = True) -> bool:
+        """
+        Check if agents need to be updated based on version.
+        
+        Args:
+            agents_exist: If True, agents already exist (from config/env), so missing version means update needed.
+                         If False, agents don't exist yet, so missing version means creation needed (not update).
+        
+        Returns:
+            True if agents need updating, False otherwise
+        """
+        import os
         stored_version = self.get_stored_version()
+        # Read version directly from environment to ensure we get the latest value
+        # Fallback to module constant if env var not set
+        current_version = os.getenv("AGENT_VERSION", AGENT_VERSION)
+        
         if not stored_version:
-            return False  # No version stored, agents need creation not update
+            if agents_exist:
+                # No version stored but agents exist (backwards compatibility case)
+                # This means agents were created before version tracking was added
+                # We should update them to ensure they have the latest configuration
+                print(f"📦 No version field found in config file (backwards compatibility)")
+                print(f"   Agents exist but version is missing - will update to version {current_version}")
+                print(f"   This ensures agents have the latest configuration")
+                return True
+            else:
+                # No version stored and agents don't exist - need creation not update
+                return False
 
-        current_version = AGENT_VERSION
         if stored_version != current_version:
             print(f"📦 Agent version changed: {stored_version} -> {current_version}")
             print(f"   Agents will be updated")
             return True
 
+        print(f"✓ Agent version matches: {current_version} (no update needed)")
         return False
 
     def save_to_file(self, agent_ids: Dict[str, str], version: str = None) -> None:
@@ -188,7 +212,9 @@ class AgentConfigManager:
         payload = {
             "name": config["name"],
             "description": config["description"],
-            "system_prompt": config["agent_instructions"],
+            "agent_role": config.get("agent_role", ""),
+            "agent_goal": config.get("agent_goal", ""),
+            "agent_instructions": config["agent_instructions"],
             "provider_id": config["provider_id"],
             "model": config["model"],
             "temperature": float(config["temperature"]),
@@ -248,17 +274,24 @@ class AgentConfigManager:
         Update an existing agent via Lyzr API using PUT.
         Returns the agent ID.
         """
+        # Update endpoint works WITHOUT trailing slash (405 error with trailing slash)
         url = f"{self.api_base}/v3/agents/{agent_id}"
         headers = {
             "Content-Type": "application/json",
             "x-api-key": self.api_key,
         }
+        
+        print(f"   Updating {role} agent (ID: {agent_id})...")
+        print(f"   URL: {url}")
+        print(f"   Method: PUT")
 
         # Build payload from config (same as create)
         payload = {
             "name": config["name"],
             "description": config["description"],
-            "system_prompt": config["agent_instructions"],
+            "agent_role": config.get("agent_role", ""),
+            "agent_goal": config.get("agent_goal", ""),
+            "agent_instructions": config["agent_instructions"],
             "provider_id": config["provider_id"],
             "model": config["model"],
             "temperature": float(config["temperature"]),
@@ -283,6 +316,10 @@ class AgentConfigManager:
                     return agent_id
 
             except httpx.HTTPStatusError as e:
+                error_text = e.response.text if hasattr(e.response, 'text') else str(e.response.content)
+                print(f"✗ HTTP Error {e.response.status_code} updating {role} agent:")
+                print(f"   Response: {error_text}")
+                
                 if e.response.status_code == 429 and attempt < retry_count - 1:
                     # Rate limited, retry with backoff
                     wait_time = (attempt + 1) * 2
@@ -290,7 +327,6 @@ class AgentConfigManager:
                     time.sleep(wait_time)
                     continue
                 else:
-                    print(f"✗ Error updating {role} agent: {e.response.text}")
                     raise
 
             except Exception as e:
@@ -363,23 +399,69 @@ class AgentConfigManager:
 
         Returns a dict mapping role -> agent_id.
         """
+        # Import here to ensure env vars are loaded
+        import os
+        env_version = os.getenv("AGENT_VERSION", "NOT SET IN ENV")
+        # Use env version if available, otherwise fallback to module constant
+        effective_version = env_version if env_version != "NOT SET IN ENV" else AGENT_VERSION
+        
+        print(f"\n{'='*70}")
+        print(f"🔍 AGENT UPDATE CHECK - NEW CODE VERSION")
+        print(f"{'='*70}")
+        print(f"   AGENT_VERSION from code constant: {AGENT_VERSION}")
+        print(f"   AGENT_VERSION from environment: {env_version}")
+        print(f"   Effective version (will be used): {effective_version}")
+        print(f"   Config file path: {CONFIG_FILE}")
+        print(f"   Config file exists: {CONFIG_FILE.exists()}")
+        
         # 1. Check environment variables first
-        agent_ids = self.load_from_env()
-        if agent_ids:
-            return agent_ids
+        agent_ids_from_env = self.load_from_env()
+        if agent_ids_from_env:
+            print("✓ Agent IDs loaded from environment variables")
+            print(f"   Found {len(agent_ids_from_env)} agents in environment")
+            # Check if version changed and update if needed
+            # agents_exist=True because we have agent IDs from env vars
+            print(f"   Checking if update is needed...")
+            if self.needs_update(agents_exist=True):
+                try:
+                    print("📦 Updating agents with new configuration...")
+                    agent_ids = await self.update_all_agents(agent_ids_from_env)
+                    # Save updated version and IDs to config file
+                    self.save_to_file(agent_ids, AGENT_VERSION)
+                    print("✅ Agents updated successfully with new version")
+                    return agent_ids
+                except Exception as e:
+                    print(f"⚠️ Failed to update agents: {e}")
+                    print(f"   Continuing with existing agents from environment")
+                    import traceback
+                    traceback.print_exc()
+            else:
+                # Version matches, no update needed, but save to config if not exists
+                if not CONFIG_FILE.exists():
+                    print("💾 Saving agent configuration to file...")
+                    self.save_to_file(agent_ids_from_env, AGENT_VERSION)
+            return agent_ids_from_env
 
         # 2. Check config file
         agent_ids = self.load_from_file()
         if agent_ids:
+            print("✓ Agent IDs loaded from config file")
+            print(f"   Found {len(agent_ids)} agents in config file")
             # Check if version changed and update if needed
-            if self.needs_update():
+            # agents_exist=True because we loaded agent IDs from config file
+            print(f"   Checking if update is needed...")
+            if self.needs_update(agents_exist=True):
                 try:
+                    print("📦 Updating agents with new configuration...")
                     agent_ids = await self.update_all_agents(agent_ids)
                     # Save updated version
                     self.save_to_file(agent_ids, AGENT_VERSION)
+                    print("✅ Agents updated successfully with new version")
                 except Exception as e:
                     print(f"⚠️ Failed to update agents: {e}")
                     print(f"   Continuing with existing agents")
+                    import traceback
+                    traceback.print_exc()
             return agent_ids
 
         # 3. Auto-create agents (with lock to prevent duplicates)

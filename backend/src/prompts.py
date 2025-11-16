@@ -14,13 +14,15 @@ DO NOT repeat the question.
 You can use markdown formatting. You should include bullets to list the information in your answer.
 
 <context>
-{my_context}
+{{ search_context }}
 </context>
 ---------------------
 
+Current date and time: {{ current_datetime }}
+
 Make sure to match the language of the user's question.
 
-Question: {my_query}
+Question: {{ user_query }}
 Answer (in the language of the user's question): \
 """
 
@@ -33,31 +35,14 @@ Instructions:
 - Ensure the follow-up questions are relevant to the original question and context.
 Make sure to match the language of the user's question.
 
-Original Question: {query}
+Original Question: {{ user_query }}
 <context>
-{context}
+{{ search_context }}
 </context>
 
 Output:
 related_questions: A list of EXACTLY three concise, simple follow-up questions
 """
-
-HISTORY_QUERY_REPHRASE = """
-Given the following conversation and a follow up input, rephrase the follow up into a SHORT, \
-standalone query (which captures any relevant context from previous messages).
-IMPORTANT: EDIT THE QUERY TO BE CONCISE. Respond with a short, compressed phrase. \
-If there is a clear change in topic, disregard the previous messages.
-Strip out any information that is not relevant for the retrieval task.
-
-Chat History:
-{chat_history}
-
-Make sure to match the language of the user's question.
-
-Follow Up Input: {question}
-Standalone question (Respond with only the short combined query):
-""".strip()
-
 
 QUERY_PLAN_PROMPT = """\
 You are an expert at creating search task lists to answer queries. Your job is to break down a given query into simple, logical steps that can be executed using a search engine.
@@ -81,27 +66,29 @@ Example Query:
 "Compare Perplexity and You.com in terms of revenue, number of employees, and valuation"
 
 Example Response (return data in this format):
-{{
+{
     "steps": [
-        {{
+        {
             "id": 0,
             "step": "Research Perplexity's revenue, employee count, and valuation",
             "dependencies": []
-        }},
-        {{
+        },
+        {
             "id": 1,
             "step": "Research You.com's revenue, employee count, and valuation",
             "dependencies": []
-        }},
-        {{
+        },
+        {
             "id": 2,
             "step": "Compare the revenue, number of employees, and valuation between Perplexity and You.com",
             "dependencies": [0, 1]
-        }}
+        }
     ]
-}}
+}
 
-Query: {query}
+Current date and time: {{ current_datetime }}
+
+Query: {{ user_query }}
 
 Return the query plan in the exact format shown above (with a "steps" array containing objects with "id", "step", and "dependencies" fields):
 """
@@ -120,10 +107,12 @@ IMPORTANT: Always incorporate relevant information from previous steps into your
 
 Input:
 ---
-User's original query: {user_query}
+Current date and time: {{ current_datetime }}
+
+User's original query: {{ user_query }}
 ---
 Context from previous steps:
-{prev_steps_context}
+{{ prev_steps_context }}
 
 Your task:
 1. Analyze the current step and its requirements
@@ -134,7 +123,7 @@ Your task:
    - Address the requirements of the current step
    - Build upon the information already gathered
 ---
-Current step to execute: {current_step}
+Current step to execute: {{ current_step }}
 ---
 
 Your search queries based:
@@ -157,7 +146,7 @@ Rules:
 
 Examples:
 
-Input: "Find 25-30 recent news articles about Artificial Intelligence funding and investments from the last 24-48 hours. return the response in the following json format {{title, short_description, url, publish_date}}"
+Input: "Find 25-30 recent news articles about Artificial Intelligence funding and investments from the last 24-48 hours. return the response in the following json format {title, short_description, url, publish_date}"
 Output: "recent news Artificial Intelligence funding investments last 24-48 hours"
 
 Input: "Search for information about climate change and return results in a structured format with title, url, and summary"
@@ -166,11 +155,13 @@ Output: "climate change information"
 Input: "Get me the latest tech news. Format it as JSON with headline and link"
 Output: "latest tech news"
 
-Input: "What are the benefits of renewable energy? Return in format {{title, description, source}}"
+Input: "What are the benefits of renewable energy? Return in format {title, description, source}"
 Output: "benefits renewable energy"
 
+Current date and time: {{ current_datetime }}
+
 Now extract search terms from:
-{query}
+{{ user_query }}
 
 Search terms (respond with ONLY the search query, nothing else):
 """.strip()

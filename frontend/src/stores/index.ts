@@ -16,7 +16,21 @@ const useStore = create<StoreState>()(
       partialize: (state) => ({
         localMode: state.localMode,
         proMode: state.proMode,
+        sessionId: state.sessionId,  // Persist session across page reloads
       }),
+      storage: {
+        getItem: (name) => {
+          // Use sessionStorage for sessionId (clears when browser closes)
+          const str = window.sessionStorage.getItem(name);
+          return str ? JSON.parse(str) : null;
+        },
+        setItem: (name, value) => {
+          window.sessionStorage.setItem(name, JSON.stringify(value));
+        },
+        removeItem: (name) => {
+          window.sessionStorage.removeItem(name);
+        },
+      },
       migrate: (persistedState: any, version: number) => {
         // Remove any old model references from persisted state
         if (persistedState.model) {
@@ -36,6 +50,8 @@ export const useChatStore = () =>
     setMessages: state.setMessages,
     threadId: state.threadId,
     setThreadId: state.setThreadId,
+    sessionId: state.sessionId,
+    setSessionId: state.setSessionId,
   }));
 
 export const useConfigStore = () =>

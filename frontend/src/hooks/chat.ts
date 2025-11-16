@@ -68,19 +68,13 @@ const streamChat = async ({
   });
 };
 
-const convertToChatRequest = (query: string, history: ChatMessage[]) => {
-  const newHistory: Message[] = history.map((message) => ({
-    role:
-      message.role === MessageRole.USER
-        ? MessageRole.USER
-        : MessageRole.ASSISTANT,
-    content: message.content,
-  }));
-  return { query, history: newHistory };
+const convertToChatRequest = (query: string) => {
+  // History is now managed by Lyzr via session_id, no need to send it
+  return { query };
 };
 
 export const useChat = () => {
-  const { addMessage, messages, threadId, setThreadId } = useChatStore();
+  const { addMessage, messages, threadId, setThreadId, sessionId, setSessionId } = useChatStore();
   const { proMode } = useConfigStore();
   const { user, userId } = useAuth();
 
@@ -137,7 +131,12 @@ export const useChat = () => {
         setIsStreamingMessage(false);
         setIsStreamingProSearch(false);
 
-        // Only if the backend is using the DB
+        // Store session_id for conversation continuity
+        if (endData.session_id) {
+          setSessionId(endData.session_id);
+        }
+
+        // Legacy: Only if the backend is using the DB
         if (endData.thread_id) {
           setThreadId(endData.thread_id);
           window.history.pushState({}, "", `/search/${endData.thread_id}`);
@@ -228,7 +227,8 @@ export const useChat = () => {
 
       const req = {
         ...request,
-        thread_id: threadId,
+        thread_id: threadId,  // Legacy, for backwards compatibility
+        session_id: sessionId,  // New: for conversation history
         pro_search: proMode,
       };
       // Get API key from localStorage
@@ -253,7 +253,7 @@ export const useChat = () => {
   });
 
   const handleSend = async (query: string) => {
-    await chat(convertToChatRequest(query, messages));
+    await chat(convertToChatRequest(query));
   };
 
   return {

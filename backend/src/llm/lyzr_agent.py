@@ -83,15 +83,38 @@ class LyzrAgentLLM(BaseLLM):
             # Use the streaming endpoint that returns plain text tokens
             return f"{self.api_base}/v3/inference/stream/"
         else:
-            # Use the chat completions endpoint for non-streaming
-            return f"{self.api_base}/v3/inference/{self.agent_id}/chat/completions"
+            # Use the v3 chat endpoint (non-streaming)
+            return f"{self.api_base}/v3/inference/chat/"
 
     def _format_messages(self, prompt: str) -> List[Dict[str, Any]]:
         """Format prompt as messages for Lyzr API"""
         return [{"role": "user", "content": prompt}]
 
-    async def astream(self, prompt: str) -> CompletionResponseAsyncGen:
-        """Async streaming completion using Lyzr Agent API with circuit breaker"""
+    def _build_system_prompt_variables(self, variables: Dict[str, str] = None) -> Dict[str, str]:
+        """Add common variables like datetime to system_prompt_variables"""
+        from datetime import datetime
+        
+        result = variables.copy() if variables else {}
+        if 'current_datetime' not in result:
+            now = datetime.now()
+            result['current_datetime'] = now.strftime("%A, %B %d, %Y %I:%M %p")
+        return result
+
+    async def astream(
+        self,
+        prompt: str,
+        system_prompt_variables: Dict[str, str] = None,
+        session_id: str = None,
+        user_id: str = None
+    ) -> CompletionResponseAsyncGen:
+        """Async streaming completion using Lyzr Agent API with circuit breaker
+
+        Args:
+            prompt: The user message to send to the agent
+            system_prompt_variables: Variables to substitute in the agent's system prompt
+            session_id: Session ID for maintaining conversation history (auto-generated if not provided)
+            user_id: User ID for tracking (defaults to "default_user" if not provided)
+        """
 
         async def _astream() -> AsyncIterator[CompletionResponse]:
             # Check circuit breaker first
@@ -133,12 +156,19 @@ class LyzrAgentLLM(BaseLLM):
                 )
                 return
 
+            # Generate session_id if not provided
+            import uuid
+            actual_session_id = session_id or str(uuid.uuid4())
+            
+            # Build system_prompt_variables with datetime and custom vars
+            actual_variables = self._build_system_prompt_variables(system_prompt_variables)
+            
             # Use the streaming endpoint with the correct payload format
             payload = {
-                "user_id": "default_user",
-                "system_prompt_variables": {},
+                "user_id": user_id or "default_user",  # Use authenticated user_id if provided
+                "system_prompt_variables": actual_variables,
                 "agent_id": self.agent_id,
-                "session_id": "default_session",  # You might want to make this dynamic
+                "session_id": actual_session_id,
                 "message": prompt,
             }
 
@@ -290,7 +320,13 @@ class LyzrAgentLLM(BaseLLM):
 
         return _astream()
 
-    async def _complete_async(self, prompt: str) -> CompletionResponse:
+    async def _complete_async(
+        self,
+        prompt: str,
+        system_prompt_variables: Dict[str, str] = None,
+        session_id: str = None,
+        user_id: str = None
+    ) -> CompletionResponse:
         """Async non-streaming completion with retry and circuit breaker"""
         # Check circuit breaker first
         if not lyzr_completion_breaker.should_allow_request():
@@ -325,13 +361,23 @@ class LyzrAgentLLM(BaseLLM):
         # Inner function with retry logic
         @async_retry(COMPLETION_RETRY_CONFIG)
         async def _make_request():
+            # Generate session_id if not provided
+            import uuid
+            actual_session_id = session_id or str(uuid.uuid4())
+            
+            # Build system_prompt_variables with datetime and custom vars
+            actual_variables = self._build_system_prompt_variables(system_prompt_variables)
+            
+            # Use v3 API payload format
             payload = {
-                "model": "lyzr-agent",
-                "messages": self._format_messages(prompt),
-                "stream": False,
+                "user_id": user_id or "default_user",  # Use authenticated user_id if provided
+                "agent_id": self.agent_id,
+                "session_id": actual_session_id,
+                "message": prompt,
+                "system_prompt_variables": actual_variables
             }
 
-            print(f"Sending to Lyzr API:")
+            print(f"Sending to Lyzr API (non-streaming):")
             print(f"  URL: {self._build_url()}")
             print(f"  Headers: {self.headers}")
             print(f"  Payload: {payload}")
@@ -362,17 +408,21 @@ class LyzrAgentLLM(BaseLLM):
                         result = await response.json()
                         print(f"  Response Body: {result}")
 
-                        # Extract content from response - handle Lyzr's nested structure
+                        # Extract content from v3 API response
+                        # v3 returns: {"response": "text", "session_id": "...", ...}
+                        if "response" in result:
+                            content = result["response"]
+                            # Ensure content is a string and not None
+                            if content is not None:
+                                return CompletionResponse(text=str(content))
+                        
+                        # Fallback: try old format (choices array)
                         if "choices" in result and len(result["choices"]) > 0:
                             choice = result["choices"][0]
                             if "message" in choice and "content" in choice["message"]:
                                 content = choice["message"]["content"]
-
-                                # Handle nested response structure from Lyzr
                                 if isinstance(content, dict) and "response" in content:
                                     content = content["response"]
-
-                                # Ensure content is a string and not None
                                 if content is not None:
                                     return CompletionResponse(text=str(content))
 
@@ -408,7 +458,13 @@ class LyzrAgentLLM(BaseLLM):
                 error_msg = f"{error_msg} (after {COMPLETION_RETRY_CONFIG.max_attempts} attempts with retry)"
             raise Exception(error_msg) from e
 
-    def complete(self, prompt: str) -> CompletionResponse:
+    def complete(
+        self,
+        prompt: str,
+        system_prompt_variables: Dict[str, str] = None,
+        session_id: str = None,
+        user_id: str = None
+    ) -> CompletionResponse:
         """Synchronous completion"""
         loop = None
         try:
@@ -423,18 +479,24 @@ class LyzrAgentLLM(BaseLLM):
 
             with concurrent.futures.ThreadPoolExecutor() as executor:
                 future = executor.submit(
-                    lambda: asyncio.run(self._complete_async(prompt))
+                    lambda: asyncio.run(self._complete_async(prompt, system_prompt_variables, session_id, user_id))
                 )
                 return future.result()
         else:
-            return loop.run_until_complete(self._complete_async(prompt))
+            return loop.run_until_complete(self._complete_async(prompt, system_prompt_variables, session_id, user_id))
 
-    def structured_complete(self, response_model: type[T], prompt: str) -> T:
+    def structured_complete(
+        self,
+        response_model: type[T],
+        prompt: str,
+        system_prompt_variables: Dict[str, str] = None,
+        session_id: str = None,
+        user_id: str = None
+    ) -> T:
         """Structured completion with Pydantic model"""
 
-        # For RelatedQueries, use a simpler approach that extracts from text
-        if response_model.__name__ == "RelatedQueries":
-            return self._extract_related_queries(prompt, response_model)
+        # All models now use JSON schema - no special cases needed
+        # The RELATED_QUESTIONS_AGENT was updated to use json_schema response format in v1.2.12
 
         # For structured completion, we'll add instructions to return JSON
         structured_prompt = f"""
@@ -446,7 +508,7 @@ Please respond with a JSON object that matches this structure:
 Only return valid JSON, no additional text.
 """
 
-        response = self.complete(structured_prompt)
+        response = self.complete(structured_prompt, system_prompt_variables, session_id, user_id)
 
         try:
             import json
@@ -506,7 +568,14 @@ Only return valid JSON, no additional text.
             print(f"Response was: {response.text}")
             raise Exception(f"Could not parse structured response: {e}")
 
-    def _extract_related_queries(self, prompt: str, response_model: type[T]) -> T:
+    def _extract_related_queries(
+        self,
+        prompt: str,
+        response_model: type[T],
+        system_prompt_variables: Dict[str, str] = None,
+        session_id: str = None,
+        user_id: str = None
+    ) -> T:
         """Special handler for related queries that may not return structured JSON"""
         import re
 
@@ -516,11 +585,11 @@ Only return valid JSON, no additional text.
 
 Please provide exactly 3 related follow-up questions, one per line, in this format:
 1. First question?
-2. Second question? 
+2. Second question?
 3. Third question?
 """
 
-        response = self.complete(simple_prompt)
+        response = self.complete(simple_prompt, system_prompt_variables, session_id, user_id)
         response_text = response.text.strip()
 
         print(f"Related queries response: {response_text}")

@@ -16,18 +16,10 @@ export interface MessageProps {
 
 /**
  * Component for rendering citation links
+ * Returns inline HTML to avoid breaking list and paragraph formatting
  */
 const CitationText = ({ number, href }: { number: number; href: string }) => {
-  return `
-  <button className="select-none no-underline">
-  <a className="" href="${href}" target="_blank">
-        <span className="relative -top-[0rem] inline-flex">
-          <span className="h-4 min-w-4 items-center justify-center rounded-full  text-center px-1 text-xs font-mono bg-muted text-[0.60rem] text-muted-foreground">
-            ${number}
-          </span>
-        </span>
-      </a>
-    </button>`;
+  return `<button style="display: inline; border: none; background: none; padding: 0; margin: 0 2px; cursor: pointer;" class="select-none no-underline"><a style="text-decoration: none;" href="${href}" target="_blank" rel="noopener noreferrer"><span style="display: inline-flex; position: relative; top: -0.1em;"><span style="display: inline-flex; align-items: center; justify-center: center; border-radius: 9999px; padding: 0 0.25rem; font-size: 0.6rem; font-family: monospace; min-width: 1rem; height: 1rem;" class="bg-muted text-muted-foreground">${number}</span></span></a></button>`;
 };
 
 // Streamdown handles streaming internally, so we don't need custom streaming components
@@ -41,8 +33,13 @@ export const MessageComponent: FC<MessageProps> = ({
 
   useEffect(() => {
     // Match [number] but NOT when followed by (url) - that's a markdown link
-    const citationRegex = /(\[\d+\])(?!\()/g;
-    const newMessage = content.replace(citationRegex, (match) => {
+    // Also ensure we're not matching list item numbers by checking for word boundaries
+    const citationRegex = /(?<!\w)(\[\d+\])(?!\()/g;
+
+    let newMessage = content;
+
+    // First pass: Replace citation markers with HTML
+    newMessage = newMessage.replace(citationRegex, (match) => {
       const number = match.slice(1, -1);
       const source = sources?.find(
         (source, idx) => idx + 1 === parseInt(number),
@@ -52,6 +49,16 @@ export const MessageComponent: FC<MessageProps> = ({
         href: source?.url ?? "",
       });
     });
+
+    // Second pass: Clean up any malformed markdown patterns
+    // Remove stray opening brackets that aren't followed by:
+    // - A number and closing bracket: [1]
+    // - Valid markdown link pattern: [text](url)
+    newMessage = newMessage.replace(/\[(?!(\d+\]|[^\]]+\]\())/g, '');
+
+    // Remove malformed link closures like ](url) without preceding text
+    newMessage = newMessage.replace(/(?<![^\s])\]\((https?:\/\/[^\)]+)\)/g, '');
+
     setParsedMessage(newMessage);
   }, [content, sources]);
 

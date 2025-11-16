@@ -25,11 +25,23 @@ LOCAL_MODELS_ENABLED = strtobool(os.getenv("ENABLE_LOCAL_MODELS", False))
 
 
 class ChatRequest(BaseModel):
-    thread_id: int | None = None
+    thread_id: int | None = None  # Deprecated: use session_id instead
+    session_id: str | None = Field(
+        default=None,
+        description="Session ID for maintaining conversation history. If not provided, a new session will be created."
+    )
     query: str
-    history: List[Message] = Field(default_factory=list)
+    # history parameter removed - Lyzr manages conversation history via session_id
     pro_search: bool = False
     time_range: str | None = None  # SearXNG time filter: "day", "week", "month", "year"
+    start_date: str | None = Field(
+        default=None,
+        description="Start date for custom date range (format: YYYY-MM-DD). Appends 'after:' operator to query."
+    )
+    end_date: str | None = Field(
+        default=None,
+        description="End date for custom date range (format: YYYY-MM-DD). Appends 'before:' operator to query."
+    )
     max_results: int = Field(default=10, ge=1, le=100)  # Number of results per query
 
 
@@ -115,7 +127,8 @@ class RelatedQueriesStream(ChatObject):
 
 
 class StreamEndStream(ChatObject):
-    thread_id: int | None = None
+    thread_id: int | None = None  # Deprecated: use session_id instead
+    session_id: str | None = None
     event_type: StreamEvent = StreamEvent.STREAM_END
 
 

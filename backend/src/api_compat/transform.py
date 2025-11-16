@@ -68,30 +68,18 @@ def openai_to_internal(
     if request.search_domain_filter:
         query = apply_domain_filter(query, request.search_domain_filter)
 
-    # Convert previous messages to history (exclude the last user message)
-    history = []
-    for msg in request.messages[:-1]:  # All except last message
-        # Map OpenAI roles to internal roles
-        if msg.role == MessageRole.SYSTEM:
-            # System messages can be treated as assistant context
-            role = InternalRole.ASSISTANT
-        elif msg.role == MessageRole.USER:
-            role = InternalRole.USER
-        else:  # assistant
-            role = InternalRole.ASSISTANT
-
-        history.append(InternalMessage(
-            content=msg.content,
-            role=role
-        ))
+    # History is now managed by Lyzr via session_id - no need to convert messages
+    # The agent will maintain conversation context automatically
 
     return ChatRequest(
-        thread_id=thread_id,
+        thread_id=thread_id,  # Deprecated but kept for backwards compat
+        session_id=request.session_id,  # Pass through session_id
         query=query,
-        history=history,
         pro_search=request.pro_search,
         time_range=request.search_recency_filter,
-        max_results=request.max_results
+        max_results=request.max_results,
+        start_date=request.start_date,  # Pass through custom date range
+        end_date=request.end_date
     )
 
 

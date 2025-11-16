@@ -62,6 +62,18 @@ class ChatCompletionRequest(BaseModel):
         le=100,  # Increased from 20 to 100
         description="Number of search results to use per query (Perplexity OSS extension)"
     )
+    session_id: Optional[str] = Field(
+        default=None,
+        description="Session ID for maintaining conversation history (Perplexity OSS extension)"
+    )
+    start_date: Optional[str] = Field(
+        default=None,
+        description="Start date for custom date range (format: YYYY-MM-DD). Appends 'after:' operator to query. (Perplexity OSS extension)"
+    )
+    end_date: Optional[str] = Field(
+        default=None,
+        description="End date for custom date range (format: YYYY-MM-DD). Appends 'before:' operator to query. (Perplexity OSS extension)"
+    )
 
 
 class UsageInfo(BaseModel):

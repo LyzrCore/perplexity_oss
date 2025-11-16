@@ -71,6 +71,7 @@ export enum ChatModel {
 
 export type ChatRequest = {
     thread_id?: number | null;
+    session_id?: string | null;
     query: string;
     history?: Array<Message>;
     model?: ChatModel;
@@ -134,6 +135,7 @@ export type SearchResultStream = {
 export type StreamEndStream = {
     event_type?: StreamEvent;
     thread_id?: number | null;
+    session_id?: string | null;
 };
 
 export enum StreamEvent {

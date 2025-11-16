@@ -24,7 +24,7 @@ export const ChatPanel = ({ threadId }: { threadId?: number }) => {
     isStreamingMessage,
     isStreamingProSearch,
   } = useChat();
-  const { messages, setMessages, setThreadId } = useChatStore();
+  const { messages, setMessages, setThreadId, setSessionId } = useChatStore();
   const { data: thread, isLoading, error } = useChatThread(threadId);
 
   const [width, setWidth] = useState(0);
@@ -38,10 +38,11 @@ export const ChatPanel = ({ threadId }: { threadId?: number }) => {
   useEffect(() => {
     if (queryMessage && !hasRun.current) {
       setThreadId(null);
+      setSessionId(null);  // Start new session for new query
       hasRun.current = true;
       handleSend(queryMessage);
     }
-  }, [queryMessage, handleSend, setThreadId]);
+  }, [queryMessage, handleSend, setThreadId, setSessionId]);
 
   useEffect(() => {
     if (!thread) return;
@@ -52,8 +53,9 @@ export const ChatPanel = ({ threadId }: { threadId?: number }) => {
   useEffect(() => {
     if (messages.length == 0) {
       setThreadId(null);
+      setSessionId(null);  // Clear session when starting new conversation
     }
-  }, [messages, setThreadId]);
+  }, [messages, setThreadId, setSessionId]);
 
   return (
     <>
