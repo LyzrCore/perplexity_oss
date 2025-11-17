@@ -24,6 +24,7 @@ from api_compat.transform import (
     internal_to_openai_complete,
     apply_domain_filter,
 )
+from chat import apply_date_range_filter
 from chat import stream_qa_objects
 from agent_search import stream_pro_search_qa
 from schemas import StreamEvent
@@ -262,6 +263,14 @@ async def search(
         # Apply domain filter if specified
         if search_request.search_domain_filter:
             query = apply_domain_filter(query, search_request.search_domain_filter)
+
+        # Apply custom date range filter if specified
+        if search_request.start_date or search_request.end_date:
+            query = apply_date_range_filter(
+                query,
+                start_date=search_request.start_date,
+                end_date=search_request.end_date
+            )
 
         # Perform search
         search_response = await perform_search(

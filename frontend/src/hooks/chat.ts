@@ -68,13 +68,23 @@ const streamChat = async ({
   });
 };
 
-const convertToChatRequest = (query: string) => {
+const convertToChatRequest = (query: string, startDate?: string | null, endDate?: string | null) => {
   // History is now managed by Lyzr via session_id, no need to send it
-  return { query };
+  const request: any = { query };
+
+  // Add date range if provided
+  if (startDate) {
+    request.start_date = startDate;
+  }
+  if (endDate) {
+    request.end_date = endDate;
+  }
+
+  return request as ChatRequest;
 };
 
 export const useChat = () => {
-  const { addMessage, messages, threadId, setThreadId, sessionId, setSessionId } = useChatStore();
+  const { addMessage, messages, threadId, setThreadId, sessionId, setSessionId, startDate, endDate } = useChatStore();
   const { proMode } = useConfigStore();
   const { user, userId } = useAuth();
 
@@ -253,7 +263,7 @@ export const useChat = () => {
   });
 
   const handleSend = async (query: string) => {
-    await chat(convertToChatRequest(query));
+    await chat(convertToChatRequest(query, startDate, endDate));
   };
 
   return {

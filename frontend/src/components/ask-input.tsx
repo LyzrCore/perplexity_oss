@@ -1,7 +1,10 @@
+"use client";
+
 import { useState } from "react";
 import ProToggle from "./pro-toggle";
 import { InputTextarea } from "./input/input-textarea";
 import { SendButton } from "./input/send-button";
+import { DateRangeFilter } from "./date-range-filter";
 
 /**
  * Initial input component
@@ -18,7 +21,11 @@ const InputBar = ({
       <div className="w-full max-h-[200px] overflow-y-auto">
         <InputTextarea input={input} setInput={setInput} />
       </div>
-      <div className="flex justify-end">
+      <div className="flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          {/* <TestPopover /> */}
+          <DateRangeFilter scale={50}/>
+        </div>
         <div className="flex items-center gap-2">
           <ProToggle />
           <SendButton disabled={input.trim().length < 5} />
@@ -44,6 +51,7 @@ const FollowingUpInput = ({
         <InputTextarea input={input} setInput={setInput} />
       </div>
       <div className="flex items-center gap-2 flex-shrink-0">
+        <DateRangeFilter />
         <ProToggle />
         <SendButton disabled={input.trim().length < 5} />
       </div>
@@ -85,7 +93,7 @@ export const AskInput = ({
   
   return (
     <form
-      className="w-full overflow-hidden"
+      className="w-full"
       onSubmit={handleSubmit}
       onKeyDown={handleKeyDown}
     >

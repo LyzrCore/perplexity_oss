@@ -174,6 +174,14 @@ class SearchRequest(BaseModel):
         default=None,
         description="Filter by time range"
     )
+    start_date: Optional[str] = Field(
+        default=None,
+        description="Start date for custom date range (format: YYYY-MM-DD). Appends 'after:' operator to query."
+    )
+    end_date: Optional[str] = Field(
+        default=None,
+        description="End date for custom date range (format: YYYY-MM-DD). Appends 'before:' operator to query."
+    )
     max_tokens_per_page: Optional[int] = Field(
         default=1024,
         description="Max tokens per page (accepted but not used)"

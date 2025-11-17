@@ -199,9 +199,19 @@ async def stream_qa_objects(
         now = datetime.now()
         current_datetime = now.strftime("%A, %B %d, %Y %I:%M %p")
 
+        # Add date range context to user query if date filters are active
+        query_with_context = query
+        if request.start_date or request.end_date:
+            if request.start_date and request.end_date:
+                query_with_context = f"{query} (searching for results between {request.start_date} and {request.end_date})"
+            elif request.start_date:
+                query_with_context = f"{query} (searching for results from {request.start_date} onwards)"
+            else:
+                query_with_context = f"{query} (searching for results up to {request.end_date})"
+
         system_prompt_vars = {
             "search_context": format_context(search_results),
-            "user_query": query,
+            "user_query": query_with_context,  # Include date range context
             "current_datetime": current_datetime
         }
 

@@ -1,0 +1,6 @@
+Error downloading http://localhost:8000/openapi.json 
+fetch failed
+ResolverError: Error downloading http://localhost:8000/openapi.json 
+fetch failed
+    at download (D:\Programs\Projects\perplexity_oss_main\frontend\node_modules\@apidevtools\json-schema-ref-parser\dist\lib\resolvers\http.js:113:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)

@@ -29,17 +29,16 @@ const MessagesList = ({
         message.role === MessageRole.USER ? (
           <UserMessageContent key={index} message={message} />
         ) : (
-          <>
+          <div key={index}>
             {message.agent_response && (
               <ProSearchRender streamingProResponse={message.agent_response} />
             )}
             <AssistantMessageContent
-              key={index}
               message={message}
               onRelatedQuestionSelect={onRelatedQuestionSelect}
             />
             {index !== messages.length - 1 && <Separator />}
-          </>
+          </div>
         ),
       )}
       {isStreamingProSearch && (

@@ -121,9 +121,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         handleAuthFailure();
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Auth check failed:", err);
-      handleAuthFailure();
+
+      // Check if it's a 401 error (token expired)
+      if (err?.message?.includes("401") || err?.message?.includes("Unauthorized")) {
+        console.warn("Authentication token expired. Clearing local storage and forcing re-login.");
+        // Clear all auth data
+        handleAuthFailure();
+        // Also clear any Lyzr SDK stored data
+        try {
+          const { default: lyzr } = await import("../../lyzr-agent-local");
+          await lyzr.logout();
+        } catch (logoutErr) {
+          console.error("Error during forced logout:", logoutErr);
+        }
+      } else {
+        handleAuthFailure();
+      }
     } finally {
       setIsInitializing(false);
       setIsLoading(false);
@@ -136,10 +151,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUserId(null);
     setToken(null);
     setUser(null);
+
+    // Clear all localStorage items related to auth
     localStorage.removeItem(USER_KEY);
     localStorage.removeItem(USER_TOKEN);
     localStorage.removeItem("user_id");
     localStorage.removeItem("USER_DATA");
+
+    // Clear any Lyzr SDK specific storage (may use different keys)
+    // This is more aggressive but prevents 401 loops
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.includes("lyzr") || key.includes("auth") || key.includes("token"))) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+
+    // Also clear sessionStorage
+    sessionStorage.clear();
   };
 
   // Add a logout function that calls lyzr.logout + clears local data

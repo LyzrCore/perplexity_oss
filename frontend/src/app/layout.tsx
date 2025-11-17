@@ -49,7 +49,7 @@ export default function RootLayout({
             href="https://api.fontshare.com/v2/css?f[]=switzer@1,2&display=swap"
             rel="stylesheet"
           />
-          <link rel="icon" href="/static/lyzr.png" />
+          <link rel="icon" href="/lyzr.png" />
         </head>
         <body
           className={cn(

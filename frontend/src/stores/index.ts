@@ -52,6 +52,11 @@ export const useChatStore = () =>
     setThreadId: state.setThreadId,
     sessionId: state.sessionId,
     setSessionId: state.setSessionId,
+    startDate: state.startDate,
+    setStartDate: state.setStartDate,
+    endDate: state.endDate,
+    setEndDate: state.setEndDate,
+    clearDateRange: state.clearDateRange,
   }));
 
 export const useConfigStore = () =>

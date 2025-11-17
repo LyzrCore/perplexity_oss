@@ -461,3 +461,37 @@ body.no-gradient-background {
 		background-position: 0% 50%;
 	}
 }
+
+/* Citation styling for inline citations */
+.citation-link {
+  text-decoration: none;
+  margin: 0 2px;
+  display: inline-block;
+  vertical-align: super;
+  font-size: 0.75em;
+  line-height: 0;
+  cursor: pointer;
+}
+
+.citation-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  padding: 0 0.35rem;
+  font-size: 0.65rem;
+  line-height: 1.2rem;
+  min-width: 1.2rem;
+  height: 1.2rem;
+  font-family: ui-monospace, monospace;
+  font-weight: 500;
+  background: oklch(from var(--primary) l c h / 0.1);
+  color: var(--primary);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.citation-link:hover .citation-badge {
+  background: oklch(from var(--primary) l c h / 0.2);
+  transform: scale(1.1);
+}
