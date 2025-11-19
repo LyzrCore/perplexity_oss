@@ -96,7 +96,7 @@ async def startup_event():
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
-    return {"status": "healthy", "service": "perplexity-oss"}
+    return {"status": "healthy", "service": "perplexity-oss", "version": "2.0.0"}
 
 
 @app.post("/chat")
